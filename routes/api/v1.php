@@ -53,7 +53,12 @@ Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->n
  */
 //Route::group(['middleware' => ['auth:api', 'role:admin']], function () {
     Route::get('/businesses/geo-json', 'BusinessesController@geoJson');
+    Route::get('/businesses/geo-json/{business_id}', 'BusinessesController@geoJsonByBisinessID');
+    
     Route::get('/businesses/stats', 'BusinessesController@stats');
+    Route::get('/categories/business-stats', 'CategoriesController@businessStats');
+    Route::get('/reviews-datatable/{business_id}', 'BusinessesController@getReviewsDatatable');
+    Route::get('/post-images-datatable/{business_id}', 'BusinessesController@getPostImagesDatatable');
 //});
 
 Route::post('/businesses/{business}/business-cover', 'BusinessCoverController@store');

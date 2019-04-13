@@ -15,4 +15,10 @@ class HelperServiceProvider extends ServiceProvider
         }
         return $pin;
     }
+
+    public static function inBounds($coordinates, $west, $south, $east, $north)
+    {
+        return ($coordinates[0] - $east) * ($coordinates[0] - $west) < 0 &&
+                ($coordinates[1] - $north) * ($coordinates[1] - $south) < 0;
+    }
 }

@@ -13,6 +13,8 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
+    const LIMIT = 1000;
+
     protected $guarded = [];
 
     protected $hidden  = ['internal_score', 'opening_hours_info'];
@@ -46,7 +48,6 @@ class Business extends Model
      */
     protected static function boot()
     {
-
         parent::boot();
         static::saving(function ($business) {
             $business->updateInternalScore();
@@ -55,7 +56,6 @@ class Business extends Model
         static::deleting(function ($business) {
             $business->categories()->sync([]);
         });
-
     }
 
     /**
@@ -307,6 +307,11 @@ class Business extends Model
             ->orderBy('relevance', 'DESC')
         ;
     }
+    
+    public function contacts()
+    {
+        return $this->hasMany(BusinessContact::class);
+    }
 
     public function categoriesExists()
     {
@@ -505,4 +510,25 @@ class Business extends Model
     {
         $this->attributes['close_period_mins'] = Business::minutesCnt($value);
     }
+
+    public function topKeywords()
+    {
+        $business_id = $this->id;
+        $keywords = DB::table(
+            DB::raw(
+                "(SELECT COUNT(*) cnt, keyword FROM business_review_keywords WHERE business_review_id IN (SELECT business_review_id FROM business_reviews WHERE business_id=$business_id) GROUP BY keyword) a"
+            ))
+            ->whereRaw('cnt >=2')
+            ->orderByRaw('cnt DESC LIMIT 10')
+            ->get();
+
+        return $keywords;
+	}
+
+    /**
+     * Get the value of limit
+     */ 
+    public function getLimit()
+    {
+        return static::LIMIT;    }
 }

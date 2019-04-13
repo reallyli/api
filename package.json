@@ -17,7 +17,9 @@
         "build-ImageBox": "cd nova-components/ImageBox && npm run dev",
         "build-ImageBox-prod": "cd nova-components/ImageBox && npm run prod",
         "build-ThumbField": "cd nova-components/ThumbField && npm run dev",
-        "build-ThumbField-prod": "cd nova-components/ThumbField && npm run prod"
+        "build-ThumbField-prod": "cd nova-components/ThumbField && npm run prod",
+        "build-report": "cd nova-components/Report && npm run dev",
+        "build-report-prod": "cd nova-components/Report && npm run prod"
     },
     "devDependencies": {
         "axios": "^0.18",

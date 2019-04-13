@@ -358,6 +358,30 @@ paths:
           required: true
           schema:
             type: string
+        -
+          name: lat
+          in: query
+          description: Latitude
+          schema:
+            type: float
+        -
+          name: lng
+          in: query
+          description: Longitude
+          schema:
+            type: float
+        -
+          name: radius
+          in: query
+          description: 'Radius in KM'
+          schema:
+            type: float
+        -
+          name: keyword
+          in: query
+          description: 'Radius in KM'
+          schema:
+            type: float
       responses:
         200:
           description: 'List businesses'

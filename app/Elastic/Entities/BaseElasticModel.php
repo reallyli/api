@@ -131,7 +131,8 @@ abstract class BaseElasticModel
      * @param $data
      * @return array
      */
-    public function getHitsSource($data) {
+    public function getHitsSource($data)
+    {
         return array_map([$this, '_getSource'], $data['inner_hits'][$this->hitName]['hits']['hits']);
     }
 
@@ -149,7 +150,8 @@ abstract class BaseElasticModel
      * @param string $name
      * @return $this
      */
-    public function setHitSource(string $name) {
+    public function setHitSource(string $name)
+    {
         $this->hitName = $name;
 
         return $this;
@@ -196,7 +198,8 @@ abstract class BaseElasticModel
     /**
      * @return array
      */
-    public function all() {
+    public function all()
+    {
         return $this->search();
     }
 }

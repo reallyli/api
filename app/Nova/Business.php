@@ -18,6 +18,7 @@ use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Panel;
+use App\Models\Business as ModelBusiness;
 
 class Business extends Resource
 {
@@ -63,10 +64,26 @@ class Business extends Resource
 
     public static function indexQuery(NovaRequest $request, $query)
     {
+        $businessCount = cache('business_count'.auth()->id());
+
+        if ($businessCount > 0 && $businessCount <= ModelBusiness::LIMIT) {
+            [$left, $bottom, $right, $top] = explode(',', cache('bounds'.auth()->id()));
+    
+            $builder = $query->getModel()->search('*')->whereGeoBoundingBox(
+                'location',
+                ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
+            );
+    
+            $businesses = $builder->select(['businesses.id'])->take(ModelBusiness::LIMIT)->get()->pluck('id')->toArray();
+    
+            $query->whereIn('businesses.id', $businesses);
+        }
+        
         if (empty($request->get('orderBy'))) {
             $query->getQuery()->orders = [];
-            return $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
+            $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
         }
+
         return $query;
     }
 
@@ -78,7 +95,6 @@ class Business extends Resource
      */
     public function fields(Request $request)
     {
-
         return [
             MapField::make('location')
                 ->hideWhenCreating()
@@ -97,6 +113,14 @@ class Business extends Resource
                     ])->render();
                 })
                 ->sortable(),
+            Text::make('Business Summary', 'name')
+                ->asHtml()
+                ->displayUsing(function ($name) {
+                    return view('partials.business-summary', [
+                        'name' => $name,
+                        'id'   => $this->id,
+                    ])->render();
+                }),
             Text::make('uuid')
                 ->onlyOnDetail(),
             Text::make('bio')
