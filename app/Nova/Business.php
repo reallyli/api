@@ -97,6 +97,14 @@ class Business extends Resource
                     ])->render();
                 })
                 ->sortable(),
+            Text::make('Business Summary', 'name')
+                ->asHtml()
+                ->displayUsing(function ($name) {
+                    return view('partials.business-summary', [
+                        'name' => $name,
+                        'id'   => $this->id,
+                    ])->render();
+                }),
             Text::make('uuid')
                 ->onlyOnDetail(),
             Text::make('bio')

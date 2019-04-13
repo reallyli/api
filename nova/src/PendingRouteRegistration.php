@@ -79,6 +79,15 @@ class PendingRouteRegistration
                 Route::get('/logout', 'LoginController@logout')->name('logout');
             });
 
+        Route::namespace('App\Http\Controllers')
+            ->domain(config('nova.domain', null))
+            ->middleware(config('nova.middleware', []))
+            ->as('nova.')
+            ->prefix(Nova::path())
+            ->group(function () {
+                Route::get('/business-summary/{id}', 'BusinessesController@businessSummary')->name('business.summary');
+            });
+
         Event::listen(NovaServiceProviderRegistered::class, function () {
             Route::domain(config('nova.domain', null))
                 ->middleware(config('nova.middleware', []))

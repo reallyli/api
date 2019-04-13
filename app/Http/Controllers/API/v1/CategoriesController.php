@@ -10,6 +10,8 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Rules\Uuid;
+use App\Models\Business;
+use App\Models\BusinessCategory;
 
 class CategoriesController extends Controller
 {
@@ -32,5 +34,17 @@ class CategoriesController extends Controller
 	        }
         }
         return CategoryResource::collection($results);
+    }
+    
+    public function businessStats(CategoryService $CategoryService)
+    {
+        $categories = BusinessCategory::leftJoin('categories', 'business_category.category_id', '=', 'categories.id')
+            ->groupBy('categories.name')
+            ->orderBy(\DB::raw('count(business_category.id)'), 'desc')
+            ->select("categories.name", \DB::raw('count(business_category.id) as businessCount'))
+            ->limit(10)
+            ->get()
+        ;
+        return $this->sendResponse($categories, 200);
     }
 }

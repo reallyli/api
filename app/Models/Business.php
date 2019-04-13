@@ -307,6 +307,11 @@ class Business extends Model
             ->orderBy('relevance', 'DESC')
         ;
     }
+    
+    public function contacts()
+    {
+        return $this->hasMany(BusinessContact::class);
+    }
 
     public function categoriesExists()
     {
@@ -504,5 +509,19 @@ class Business extends Model
     public function setClosePeriodMinsAttribute($value)
     {
         $this->attributes['close_period_mins'] = Business::minutesCnt($value);
+    }
+
+    public function topKeywords()
+    {
+        $business_id = $this->id;
+        $keywords = DB::table(
+            DB::raw(
+                "(SELECT COUNT(*) cnt, keyword FROM business_review_keywords WHERE business_review_id IN (SELECT business_review_id FROM business_reviews WHERE business_id=$business_id) GROUP BY keyword) a"
+            ))
+            ->whereRaw('cnt >=2')
+            ->orderByRaw('cnt DESC LIMIT 10')
+            ->get();
+
+        return $keywords;
     }
 }

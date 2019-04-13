@@ -38,7 +38,8 @@
         "spatie/laravel-permission": "^2.30",
         "spatie/opening-hours": "^2.0",
         "twilio/sdk": "^5.28",
-        "zircote/swagger-php": "^3.0"
+        "zircote/swagger-php": "^3.0",
+        "acme/report": "*"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
@@ -121,6 +122,10 @@
         {
             "type": "path",
             "url": "./nova-components/ThumbField"
+        },
+        {
+            "type": "path",
+            "url": "./nova-components/Report"
         }
     ]
 }

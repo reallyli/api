@@ -8,6 +8,8 @@ use App\Http\Requests\Api\Businesses\BookmarkBusiness;
 use App\Http\Requests\Api\Businesses\StoreBusiness;
 use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use App\Models\Business;
+use App\Models\BusinessReview;
+use App\Models\BusinessReviewImage;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BusinessResource;
 use App\Rules\LatLng;
@@ -42,9 +44,167 @@ class BusinessesController extends Controller
      */
     public function geoJson() {
         $fileToDownload = config('filesystems.geojson_path');
+        
         return response()->download(storage_path($fileToDownload));
     }
 
+    public function geoJsonByBisinessID($id) {
+        $business = Business::find($id);
+        
+        $result = [
+            "type" => "FeatureCollection",
+            "features" => [
+                array(
+                  "type"=> "Feature",
+                  "geometry"=> [
+                    "type"=> "Point",
+                    "coordinates"=> [
+                      $business->lng,
+                      $business->lat,
+                    ]
+                  ],
+                  "properties"=> [
+                      "name" => "<a href='".url("dashboard/resources/businesses/". $id)."'>".$business->name."</a>"
+                  ]
+                )
+            ]
+        ];
+        
+        return response()->json($result);
+    }
+
+    public function getReviewsDatatable(Request $request, $business_id)
+    {
+        $reviews = Business::find($business_id)->reviews;
+        $recordsTotal = count($reviews);
+        
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $draw = $request->get('draw');
+        
+        $html = "<div class=\"row\">\n";
+        
+        foreach ($reviews as $key=>$review)
+        {
+            // If it is not requested to view all
+            if($length != -1){
+                if($key < $start){
+                    continue;
+                }
+                if($key >= ($start + $length)){
+                    break;
+                }
+            }
+            
+            $html .= "
+                        <div class=\"col-sm-6 mb-2 \">
+                            <div class=\"card\">
+                                <div class=\"card-body\">
+                                    <div class=\"review-images-holder\">
+            ";
+                                        foreach($review->images as $image){
+                                            if($postImage->path){
+                                                $html .= "<div class=\"float-left p-2\">
+                                                    {{-- <img style='max-width: 100px;' src=\"".url(Storage::disk('s3')->url($image->path))."\" alt=\"\"> --}}
+                                                    <div style=\"background-image: url(".Storage::disk('s3')->url($image->path).")\" class=\"review-image\" />
+                                                </div>";
+                                            }
+                                            else
+                                                $html .= "&nbsp;";
+                                        }
+            $html .= "
+                                    </div>
+                                    <div class=\"clearfix\"></div>
+                                    <p class=\"card-text\">".nl2br($review->comment)."</p>
+                                    <div class=\"review-keywords-holder\">
+            ";
+                                        foreach($review->keywords as $keyword){
+                                            $html .= "<div class=\"float-left p-2 card-items\">".$keyword->keyword."</div>";
+                                        }
+            $html .= "
+                                    </div>
+                                    <div class=\"clearfix\"></div>
+                                </div>
+                            </div>
+                        </div>
+            ";
+        }
+        $html .= "</div>";
+
+        $data = array(
+            [
+                $html
+            ]
+        );
+
+        $result = array(
+            'draw' => $draw,
+            'data' => $data,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsTotal,
+        );
+        
+        return response()->json($result);
+    }   
+ 
+    public function getPostImagesDatatable(Request $request, $business_id)
+    {
+        $postImages = Business::find($business_id)->images;
+        $recordsTotal = count($postImages);
+        
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $draw = $request->get('draw');
+        
+        $html = "<div class=\"row\">\n";
+        
+        foreach ($postImages as $key=>$postImage)
+        {
+            // If it is not requested to view all
+            if($length != -1){
+                if($key < $start){
+                    continue;
+                }
+                if($key >= ($start + $length)){
+                    break;
+                }
+            }
+            
+            $html .= "
+                <div class=\"col-sm-3 mb-2 text-center \">
+            ";
+                    if($postImage->path){
+                        $html .= "
+                            <a class=\"popup-img-btn\" href=\"#\">
+                                <input type=\"hidden\" class=\"img-src\" data-src=\"". Storage::disk('s3')->url($postImage->path) ."\">
+                                <div style=\"border:1px solid black; background-image: url(". Storage::disk('s3')->url($postImage->path) .")\" class=\"post-image\" ></div>
+                            </a>
+                        ";
+                    }else{
+                        $html .= "&nbsp;";
+                    }
+            $html .= "
+                </div>
+            ";
+        }
+        $html .= "</div>";
+
+        $data = array(
+            [
+                $html
+            ]
+        );
+
+        $result = array(
+            'draw' => $draw,
+            'data' => $data,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsTotal,
+        );
+        
+        return response()->json($result);
+    }   
+ 
     /**
      *  @OA\Get(
      *     path="/api/v1/businesses/stats",
@@ -91,16 +251,27 @@ class BusinessesController extends Controller
                 'message' => 'The given data is invalid'
             ], 422);
         }
+        
+        $totalBusinesses = count(Business::get());
 
-        $response = $elasticClient->search(AggregationRule::buildRule($topLeft, $bottomRight));
-        $response = $response['aggregations'];
+        $totalReviews = count(BusinessReview::get());
+
+        $businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
+        $totalImages = count($businessReviewImages);
+        
+
+//        $response = $elasticClient->search(AggregationRule::buildRule($topLeft, $bottomRight));
+//        $response = $response['aggregations'];
 
         $attributes = $elasticClient->search(AttributesCountRule::buildRule($topLeft, $bottomRight));
 
         return response()->json([
-            'totalBusinesses' => $response['total_businesses']['value'],
-            'totalImages'     => $response['total_images']['value'],
-            'totalReviews'    => $response['total_reviews']['value'],
+            'totalBusinesses' => $totalBusinesses,
+            'totalImages'     => $totalImages,
+            'totalReviews'    => $totalReviews,
+//            'totalBusinesses' => $response['total_businesses']['value'],
+//            'totalImages'     => $response['total_images']['value'],
+//            'totalReviews'    => $response['total_reviews']['value'],
             'attributes'      => view('partials.attributes', ['attributes' => $attributes['aggregations']])->render()
         ]);
     }
@@ -117,6 +288,46 @@ class BusinessesController extends Controller
     public function show($id)
     {
         $business = Business::uuid($id);
+        
+        // Total reviews
+        $totalReviews = BusinessReview::where('business_id', $business->id)->get();
+        
+        if(count($totalReviews) == 0){
+            $score_breakdown = array(
+                'low'       => 0,
+                'medium'    => 0,
+                'high'      => 0,
+                'top'       => 0,
+            );
+        }
+        else
+        {
+            // Calc low
+            $lowBusinessReviews = BusinessReview::where('business_id', $business->id)->where('score', '<=', 25)->get();
+            $lowPercent = count($lowBusinessReviews) / count($totalReviews) * 100;
+            
+            // Calc mediumn
+            $mediumBusinessReviews = BusinessReview::where('business_id', $business->id)->where('score', '>', 25)->where('score', '<=', 50)->get();
+            $mediumPercent = count($mediumBusinessReviews) / count($totalReviews) * 100;
+            
+            // Calc high
+            $highBusinessReviews = BusinessReview::where('business_id', $business->id)->where('score', '>', 50)->where('score', '<=', 75)->get();
+            $highPercent = count($highBusinessReviews) / count($totalReviews) * 100;
+            
+            // Calc top
+            $topBusinessReviews = BusinessReview::where('business_id', $business->id)->where('score', '>', 75)->get();
+            $topPercent = count($topBusinessReviews) / count($totalReviews) * 100;
+            
+            $score_breakdown = array(
+                'low'       => $lowPercent,
+                'medium'    => $mediumPercent,
+                'high'      => $highPercent,
+                'top'       => $topPercent,
+            );
+            
+        }
+        
+        $business->score_breakdown = $score_breakdown;
 
         return new BusinessResource($business);
     }
