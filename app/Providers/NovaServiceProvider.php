@@ -19,7 +19,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         parent::boot();
         
-//        Nova::script('admin', public_path('js/custom.js'));
+        Nova::script('admin', public_path('js/custom.js'));
         Nova::style('admin', public_path('css/custom.css'));
     }
 
@@ -59,6 +59,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     {
         return [
             new Help,
+            // (new TotalBusiness)->width('1/3'),
+            // (new TotalReviews)->width('1/3'),
+            // (new TotalReviewImages)->width('1/3'),
         ];
     }
 

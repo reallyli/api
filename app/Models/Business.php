@@ -13,6 +13,8 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
+    const LIMIT = 1000;
+
     protected $guarded = [];
 
     protected $hidden  = ['internal_score', 'opening_hours_info'];
@@ -46,7 +48,6 @@ class Business extends Model
      */
     protected static function boot()
     {
-
         parent::boot();
         static::saving(function ($business) {
             $business->updateInternalScore();
@@ -55,7 +56,6 @@ class Business extends Model
         static::deleting(function ($business) {
             $business->categories()->sync([]);
         });
-
     }
 
     /**
@@ -523,5 +523,12 @@ class Business extends Model
             ->get();
 
         return $keywords;
-    }
+	}
+
+    /**
+     * Get the value of limit
+     */ 
+    public function getLimit()
+    {
+        return static::LIMIT;    }
 }

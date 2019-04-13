@@ -18,6 +18,7 @@
         "authy/php": "^3.0",
         "aws/aws-sdk-php": "^3.69",
         "babenkoivan/scout-elasticsearch-driver": "v3.8.2",
+        "beyondcode/laravel-dump-server": "^1.2",
         "brianium/paratest": "^2.1",
         "darkaonline/l5-swagger": "5.7.*",
         "doctrine/dbal": "^2.9",
@@ -42,7 +43,6 @@
         "acme/report": "*"
     },
     "require-dev": {
-        "beyondcode/laravel-dump-server": "^1.0",
         "filp/whoops": "^2.0",
         "guidocella/eloquent-populator": "^2.1",
         "mockery/mockery": "^1.0",
