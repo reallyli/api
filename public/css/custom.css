@@ -1,0 +1,83 @@
+.pagination li a{
+    text-decoration: none;
+}
+.pagination li span:first-child {
+    background-color: #dedaec;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-weight: 400;
+    color: #585858;
+    opacity: .6;
+        display: block;
+}
+.pagination li a:last-child {
+    background-color: #ebe9f2;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-weight: 400;
+    color: #585858;
+    opacity: .6;
+    width: auto;
+    height: auto;
+}
+.pagination li span:first-child:hover, .pagination li a:last-child:hover{
+    background: #716aca;
+    color: #fff;
+}
+ .pagination li.active span{
+    background-color: #716aca;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: #fff;
+    text-align: center;
+ }
+ .pagination li a{
+    background-color: #ebe9f2;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    text-align: center;
+    display: inline-block;
+ }
+ #ImageModal .modal-dialog {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+ }
+ #ImageModal .modal-header {
+     border: 0px;
+ }
+ #ImageModal .modal-content {
+    height: auto;
+    min-height: 100%;
+    max-width: none;
+    border-radius: 0;
+ }
+ 
+ #business-summary #stats{
+     display: none;
+ }
+ #business-summary .show_attributes{
+     display: none;
+ }
+ #business-summary #attributes{
+     display: none;
+ }
+ #business-summary #map .mapboxgl-ctrl-geocoder{
+     display: none;
+ }
+ #nova .dropdown-menu {
+    position: absolute;
+    left: 0;
+    z-index: 1000;
+    display: inherit;
+    padding: 0px;
+ }
+ #nova .dropdown-menu .list-reset{
+     margin-bottom: 0px;
+ }
+ 

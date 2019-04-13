@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/places', function (Request $request) {
     return response()->json(url('/api/v1/places/geo-json'));
 });
+
+Route::get('/id', function (Request $request) {
+    return response()->json(auth()->id());
+});

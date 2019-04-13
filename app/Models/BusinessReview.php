@@ -63,6 +63,17 @@ class BusinessReview extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function images()
+    {
+        return
+            $this
+                ->hasMany(BusinessReviewImage::class)
+            ;
+    }
+
+    /**
      * @return string
      */
     public function getKeywordsListAttribute() {

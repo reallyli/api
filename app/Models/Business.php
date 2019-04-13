@@ -13,6 +13,8 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
+    const LIMIT = 1000;
+
     protected $guarded = [];
 
     protected $hidden  = ['internal_score', 'opening_hours_info'];
@@ -46,7 +48,6 @@ class Business extends Model
      */
     protected static function boot()
     {
-
         parent::boot();
         static::saving(function ($business) {
             $business->updateInternalScore();
@@ -55,7 +56,6 @@ class Business extends Model
         static::deleting(function ($business) {
             $business->categories()->sync([]);
         });
-
     }
 
     /**
@@ -240,7 +240,7 @@ class Business extends Model
 
         if ($countReviews === 0) {
             $score = 80;
-        } else if ($countReviews < 5) {
+        } elseif ($countReviews < 5) {
             $score = ($avgReview / 5 * 0.3 + 0.5) * 100;
         } else {
             $score = $avgReview / 5 * 100;
@@ -306,6 +306,11 @@ class Business extends Model
             ->withTimestamps()
             ->orderBy('relevance', 'DESC')
         ;
+    }
+    
+    public function contacts()
+    {
+        return $this->hasMany(BusinessContact::class);
     }
 
     public function categoriesExists()
@@ -504,5 +509,13 @@ class Business extends Model
     public function setClosePeriodMinsAttribute($value)
     {
         $this->attributes['close_period_mins'] = Business::minutesCnt($value);
+    }
+
+    /**
+     * Get the value of limit
+     */ 
+    public function getLimit()
+    {
+        return static::LIMIT;
     }
 }

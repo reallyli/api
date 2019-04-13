@@ -17,6 +17,14 @@ yarn-error.log
 google-application-credentials.json
 composer.lock
 
+Dockerfile
+build-deploy/first-run.sh
+build-deploy/image/run.sh
+build-deploy/nginx/domains.d/app.local.conf
+build-deploy/run.sh
+build-deploy/prepare.sh
+docker-compose.yml
+.env
 
 #VIM
 *.un~
