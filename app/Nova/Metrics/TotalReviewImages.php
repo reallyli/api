@@ -4,9 +4,9 @@ namespace App\Nova\Metrics;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Metrics\Value;
-use App\Nova\Models\Business;
-use App\Nova\Models\BusinessReview;
-use App\Nova\Models\BusinessReviewImage;
+use App\Models\Business;
+use App\Models\BusinessReview;
+use App\Models\BusinessReviewImage;
 
 class TotalReviewImages extends Value
 {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\v1;
 
 use App\Rules\LatLng;
 use App\Models\Business;
+use App\Models\BusinessReview;
 use Elasticsearch\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -15,6 +16,7 @@ use App\Http\Requests\Api\Businesses\BookmarkBusiness;
 use App\Http\Requests\Api\Businesses\StoreBusiness;
 use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use Elasticsearch\ClientBuilder;
+use Illuminate\Support\Facades\Storage;
 
 class BusinessesController extends Controller
 {
@@ -40,12 +42,17 @@ class BusinessesController extends Controller
      *  )
      * @return mixed
      */
-    public function geoJson()
-    {
+    public function geoJson() {
         // 3min Lavavel 5.7
-        cache(['bounds'.request('id') => request('bounds')], 3);
+        $boundParts = explode(',', request('bounds'));
+	if(count($boundParts) != 4) {
+		$fileToDownload = config('filesystems.geojson_path');
+		return response()->download(storage_path($fileToDownload));
+	}
 
-        [$left, $bottom, $right, $top] = explode(',', request('bounds'));
+
+        cache(['bounds'.request('id') => request('bounds')], 3);
+        [$left, $bottom, $right, $top] = $boundParts;
         
         $builder = Business::search('*')->whereGeoBoundingBox(
             'location',
@@ -60,14 +67,8 @@ class BusinessesController extends Controller
         if ($builder->count() == 0) {
             $data['type'] = 'FeatureCollection';
             $data['features'][] = ['geometry' => ['coordinates' => []]];
-
             return response()->json($data);
         }
-        
-
-
-
-
 
         // if businesses > LIMIT, file will be downloaded
         if ($builder->count() > Business::LIMIT) {
@@ -123,8 +124,7 @@ class BusinessesController extends Controller
         return response()->json($result);
     }
 
-    public function getReviewsDatatable(Request $request, $business_id)
-    {
+    public function getReviewsDatatable(Request $request, $business_id) {
         $reviews = Business::find($business_id)->reviews;
         $recordsTotal = count($reviews);
         
@@ -165,7 +165,10 @@ class BusinessesController extends Controller
             $html .= "
                                     </div>
                                     <div class=\"clearfix\"></div>
-                                    <p class=\"card-text\">".nl2br($review->comment)."</p>
+                                    <p class=\"card-text\">
+					<span class='float-left p-2 card-items'>".$review->score."%</span>
+					".nl2br($review->comment)."
+				    </p>
                                     <div class=\"review-keywords-holder\">
             ";
                                         foreach($review->keywords as $keyword){
@@ -195,10 +198,9 @@ class BusinessesController extends Controller
         );
         
         return response()->json($result);
-    }   
+    }
  
-    public function getPostImagesDatatable(Request $request, $business_id)
-    {
+    public function getPostImagesDatatable(Request $request, $business_id) {
         $postImages = Business::find($business_id)->images;
         $recordsTotal = count($postImages);
         
@@ -253,325 +255,8 @@ class BusinessesController extends Controller
         );
         
         return response()->json($result);
-    } 
-
-<<<<<<< .mine
-    public function geoJsonByBisinessID($id) {
-        $business = Business::find($id);
-        
-        $result = [
-            "type" => "FeatureCollection",
-            "features" => [
-                array(
-                  "type"=> "Feature",
-                  "geometry"=> [
-                    "type"=> "Point",
-                    "coordinates"=> [
-                      $business->lng,
-                      $business->lat,
-                    ]
-                  ],
-                  "properties"=> [
-                      "name" => "<a href='".url("dashboard/resources/businesses/". $id)."'>".$business->name."</a>"
-                  ]
-                )
-            ]
-        ];
-        
-        return response()->json($result);
     }
 
-    public function getReviewsDatatable(Request $request, $business_id)
-    {
-        $reviews = Business::find($business_id)->reviews;
-        $recordsTotal = count($reviews);
-        
-        $start = $request->get('start');
-        $length = $request->get('length');
-        $draw = $request->get('draw');
-        
-        $html = "<div class=\"row\">\n";
-        
-        foreach ($reviews as $key=>$review)
-        {
-            // If it is not requested to view all
-            if($length != -1){
-                if($key < $start){
-                    continue;
-                }
-                if($key >= ($start + $length)){
-                    break;
-                }
-            }
-            
-            $html .= "
-                        <div class=\"col-sm-6 mb-2 \">
-                            <div class=\"card\">
-                                <div class=\"card-body\">
-                                    <div class=\"review-images-holder\">
-            ";
-                                        foreach($review->images as $image){
-                                            if($postImage->path){
-                                                $html .= "<div class=\"float-left p-2\">
-                                                    {{-- <img style='max-width: 100px;' src=\"".url(Storage::disk('s3')->url($image->path))."\" alt=\"\"> --}}
-                                                    <div style=\"background-image: url(".Storage::disk('s3')->url($image->path).")\" class=\"review-image\" />
-                                                </div>";
-                                            }
-                                            else
-                                                $html .= "&nbsp;";
-                                        }
-            $html .= "
-                                    </div>
-                                    <div class=\"clearfix\"></div>
-                                    <p class=\"card-text\">".nl2br($review->comment)."</p>
-                                    <div class=\"review-keywords-holder\">
-            ";
-                                        foreach($review->keywords as $keyword){
-                                            $html .= "<div class=\"float-left p-2 card-items\">".$keyword->keyword."</div>";
-                                        }
-            $html .= "
-                                    </div>
-                                    <div class=\"clearfix\"></div>
-                                </div>
-                            </div>
-                        </div>
-            ";
-        }
-        $html .= "</div>";
-
-        $data = array(
-            [
-                $html
-            ]
-        );
-
-        $result = array(
-            'draw' => $draw,
-            'data' => $data,
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsTotal,
-        );
-        
-        return response()->json($result);
-    }   
- 
-    public function getPostImagesDatatable(Request $request, $business_id)
-    {
-        $postImages = Business::find($business_id)->images;
-        $recordsTotal = count($postImages);
-        
-        $start = $request->get('start');
-        $length = $request->get('length');
-        $draw = $request->get('draw');
-        
-        $html = "<div class=\"row\">\n";
-        
-        foreach ($postImages as $key=>$postImage)
-        {
-            // If it is not requested to view all
-            if($length != -1){
-                if($key < $start){
-                    continue;
-                }
-                if($key >= ($start + $length)){
-                    break;
-                }
-            }
-            
-            $html .= "
-                <div class=\"col-sm-3 mb-2 text-center \">
-            ";
-                    if($postImage->path){
-                        $html .= "
-                            <a class=\"popup-img-btn\" href=\"#\">
-                                <input type=\"hidden\" class=\"img-src\" data-src=\"". Storage::disk('s3')->url($postImage->path) ."\">
-                                <div style=\"border:1px solid black; background-image: url(". Storage::disk('s3')->url($postImage->path) .")\" class=\"post-image\" ></div>
-                            </a>
-                        ";
-                    }else{
-                        $html .= "&nbsp;";
-                    }
-            $html .= "
-                </div>
-            ";
-        }
-        $html .= "</div>";
-
-        $data = array(
-            [
-                $html
-            ]
-        );
-
-        $result = array(
-            'draw' => $draw,
-            'data' => $data,
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsTotal,
-        );
-        
-        return response()->json($result);
-    }   
- 
-=======
-        // if businesses > LIMIT, file will be downloaded
-        if ($builder->count() > Business::LIMIT) {
-            $data = json_decode(
-                file_get_contents(storage_path(config('filesystems.geojson_path'))),
-                true
-            );
-
-            $data['features'] = collect($data['features'])->filter(function ($item) use ($bottom, $left, $top, $right) {
-                return \HelperServiceProvider::inBounds($item['geometry']['coordinates'], $left, $bottom, $right, $top);
-            })->values();
-
-            return response()->json($data);
-        }
-        
-        $businesses = $builder->take(Business::LIMIT)->get();
-
-        $data['type'] = 'FeatureCollection';
-
-        foreach ($businesses as $business) {
-            $feature['type'] = 'Feature';
-            $feature['geometry']['type'] = 'Point';
-            $feature['geometry']['coordinates'] = [$business->lng, $business->lat];
-            $feature['properties']['name'] ="<a href=\"/dashboard/resources/businesses/{$business->id}\">{$business->name}</a>";
-            $data['features'][] = $feature;
-        }
-
-        return response()->json($data);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> .theirs
     /**
      *  @OA\Get(
      *     path="/api/v1/businesses/stats",
@@ -619,17 +304,15 @@ class BusinessesController extends Controller
                 'message' => 'The given data is invalid'
             ], 422);
         }
+
+	@session_start();
+	$_SESSION['last_biz_map_query'] = array('top_left'=>['lat'=>$topLeft['lat'], 'lon'=>$topLeft['lng']], 'bottom_right'=>['lat'=>$bottomRight['lat'], 'lon'=>$bottomRight['lng']]);
         
-        $totalBusinesses = count(Business::get());
+        $totalBusinesses = Business::count();
+        $totalReviews = BusinessReview::count();
 
-        $totalReviews = count(BusinessReview::get());
-
-        $businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
-        $totalImages = count($businessReviewImages);
-        
-
-//        $response = $elasticClient->search(AggregationRule::buildRule($topLeft, $bottomRight));
-//        $response = $response['aggregations'];
+        //$businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
+        $totalImages = 0;//count($businessReviewImages);
 
         $attributes = $elasticClient->search(AttributesCountRule::buildRule($topLeft, $bottomRight));
 
@@ -637,9 +320,6 @@ class BusinessesController extends Controller
             'totalBusinesses' => $totalBusinesses,
             'totalImages'     => $totalImages,
             'totalReviews'    => $totalReviews,
-//            'totalBusinesses' => $response['total_businesses']['value'],
-//            'totalImages'     => $response['total_images']['value'],
-//            'totalReviews'    => $response['total_reviews']['value'],
             'attributes'      => view('partials.attributes', ['attributes' => $attributes['aggregations']])->render()
         ]);
     }

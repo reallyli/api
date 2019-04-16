@@ -39,13 +39,12 @@ class CategorySearchRule extends SearchRule
             ];
         }
 
-        // if not, prefer a rough match (within 5 transposition/rewrite steps) from category name
         return [
             'should' => [
                 [
                     'multi_match' => [
                         'query'     => $query,
-                        'fuzziness' => 5
+                        'fuzziness' => 0
                     ]
                 ]
             ]

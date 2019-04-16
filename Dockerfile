@@ -11,8 +11,6 @@ RUN pip install awscli --upgrade --user
 
 RUN echo "export PATH=~/.local/bin:\$PATH" >> /root/.bashrc
 
-ADD ./aws-credentials /root/.aws/credentials
-
 # ADD current files
 ADD . /var/www/app
 

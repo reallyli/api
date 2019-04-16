@@ -42,7 +42,7 @@ class CategoriesController extends Controller
             ->groupBy('categories.name')
             ->orderBy(\DB::raw('count(business_category.id)'), 'desc')
             ->select("categories.name", \DB::raw('count(business_category.id) as businessCount'))
-            ->limit(10)
+            ->limit(20)
             ->get()
         ;
         return $this->sendResponse($categories, 200);

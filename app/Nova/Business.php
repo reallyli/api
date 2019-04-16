@@ -221,7 +221,7 @@ class Business extends Resource
     public function actions(Request $request)
     {
         return [
-            new GenerateBusinessBioAction()
+            //new GenerateBusinessBioAction()
         ];
     }
 }

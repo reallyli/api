@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Laravel\Nova\Nova;
 use Laravel\Nova\Cards\Help;
+use App\Nova\Metrics\TotalBusiness;
+use App\Nova\Metrics\TotalReviews;
+use App\Nova\Metrics\TotalReviewImages;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\NovaApplicationServiceProvider;
 use Acme\Report\Report;
@@ -18,8 +21,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
-        
-        Nova::script('admin', public_path('js/custom.js'));
         Nova::style('admin', public_path('css/custom.css'));
     }
 
@@ -58,10 +59,10 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     protected function cards()
     {
         return [
-            new Help,
-            // (new TotalBusiness)->width('1/3'),
-            // (new TotalReviews)->width('1/3'),
-            // (new TotalReviewImages)->width('1/3'),
+            //new Help,
+             (new TotalBusiness)->width('1/3'),
+             (new TotalReviews)->width('1/3'),
+             (new TotalReviewImages)->width('1/3'),
         ];
     }
 

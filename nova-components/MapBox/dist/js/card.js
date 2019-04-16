@@ -10720,12 +10720,11 @@ var render = function() {
               )
             ]),
             _vm._v(" "),
-            _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total images:")))])]),
+            _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "totalImages" } }, [
               _vm._v(
                 "\n                    " +
-                  _vm._s(_vm.totalImages) +
                   "\n                "
               )
             ])

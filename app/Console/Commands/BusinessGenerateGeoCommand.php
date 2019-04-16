@@ -75,7 +75,7 @@ class BusinessGenerateGeoCommand extends Command
                         'coordinates' => [$business['lng'], $business['lat']]
                     ],
                     'properties' => [
-                        'name' => "<a href='".URL::to(config('nova.path')."/resources/businesses/".$business['id'])."'>{$business['name']}</a>",
+                        'name' => "<a href='/dashboard/business-summary/".$business['id']."'>{$business['name']}</a>",
                     ]
                 ];
                 $append = json_encode($append) . ",";

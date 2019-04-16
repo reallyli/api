@@ -3,6 +3,7 @@
 @section('content')
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="/css/custom.css">
     
     <div id="business-summary" class="custom-content-container">
         <div class="row">
@@ -24,19 +25,21 @@
                     <strong>Score:</strong>
                     <span>{{$business->score}}%</span>
                 </div>
-                <div class="mb-2">
-                    <strong><u>Contacts</u></strong><br>
-                    <table width="100%">
-                        @foreach($business->contacts as $contact)
-                            <tr>
-                                <td width="150px">{{$contact->type}}</td>
-                                <td>{{$contact->value}}</td>
-                            </tr>
-                        @endforeach
-                    </table>
-                </div>
+                @if (count($business->contacts))
+			<div class="mb-2">
+			    <strong><u>Contacts</u></strong><br>
+			    <table width="100%">
+				@foreach($business->contacts as $contact)
+				    <tr>
+					<td width="150px">{{$contact->type}}</td>
+					<td>{{$contact->value}}</td>
+				    </tr>
+				@endforeach
+			    </table>
+			</div>
+                @endif
             </div>
-            <div class="col-sm business-map mt-5 mb-3">
+            <div class="col-sm business-map">
                 <map-box-detail business-id="{{$business->id}}" lat="{{$business->lat}}" lng="{{$business->lng}}"></map-box-detail>
             </div>
         </div>
@@ -55,7 +58,7 @@
             <strong>Attributes:</strong>
             @if (count($business->optionalAttributes))
                 <div class="row">
-                    <div class="col-sm m-2">
+                    <div class="col-sm-6 m-2">
                         <table class="table table-striped table-bordered attribute-table">
                             <tr>
                                 <th>Attribut Name</th>
@@ -76,30 +79,80 @@
         </div>
 
         <div class="mb-2">
-            <strong>Top Keywords:</strong>
-            @if (count($business->topKeywords()))
-                <div class="row">
-                    <div class="col-sm m-2">
-                        <table class="table table-striped table-bordered attribute-table">
-                            <tr>
-                                <th>Keyword</th>
-                                <th>Count</th>
-                            </tr>
-                            @foreach($business->topKeywords() as $keyword)
-                                <tr>
-                                    <td>{{$keyword->keyword}}</td>
-                                    <td>{{$keyword->cnt}}</td>
-                                </tr>
-                            @endforeach
-                        </table>
-                    </div>
-                </div>
-            @else
-                <span class="content-none">None</span>
-            @endif
+			<div class="row">
+				<div class="col-sm-3 m-2">
+					<strong>Top Keywords:</strong>
+					@if (count($business->topKeywords()))
+						<table class="table table-striped table-bordered attribute-table">
+							<tr>
+								<th>Keyword</th>
+								<th>Count</th>
+							</tr>
+							@foreach($business->topKeywords() as $keyword)
+								<tr>
+									<td>{{$keyword->keyword}}</td>
+									<td>{{$keyword->cnt}}</td>
+								</tr>
+							@endforeach
+						</table>
+					@else
+						<span class="content-none"><br>None</span>
+					@endif
+				</div>
+
+				<div class="col-sm-4 m-2">
+					<strong>Top Topics:</strong>
+					@php
+						$topics = $business->getTopics();
+					@endphp
+					@if (count($topics))
+						<table class="table table-striped table-bordered attribute-table">
+							<tr>
+								<th>Topic</th>
+								<th>Count</th>
+								<th>Rating</th>
+							</tr>
+							@foreach($topics as $topic)
+								<tr>
+									<td>{{$topic['title']}}</td>
+									<td>{{$topic['total']}}</td>
+									<td>{{$topic['score']}}%</td>
+								</tr>
+							@endforeach
+						</table>
+					@else
+						<span class="content-none"><br>None</span>
+					@endif
+				</div>
+			</div>
         </div>
+
+		@if (count($topics))
+		<strong>Topic Details</strong>
+        <div class="mb-2" style="max-height: 400px; overflow-y: scroll; overflow-x: hidden;">
+			<div class="row">
+				@foreach($topics as $topic)
+					<div class="col-sm-4">
+						<strong>{{$topic['title']}}:</strong>
+						<table class="table table-striped table-bordered attribute-table">
+							<tr>
+								<th>Phrase</th>
+								<th>Count</th>
+							</tr>
+							@foreach($topic['phrases'] as $pr)
+								<tr>
+									<td>{{$pr['keyword']}}</td>
+									<td>{{$pr['cnt']}}</td>
+								</tr>
+							@endforeach
+						</table>
+					</div>
+				@endforeach
+			</div>
+        </div> <!-- /story-details -->
+		@endif
         
-        <div class="mb-3">
+        <div class="mb-2">
             <strong>Post Images:</strong>
             @if (count($postImages))
                 <table id="post-images-table" class="table table-bordered table-striped table-condensed dataTable" data-business-id="{{$business->id}}">

@@ -241,10 +241,12 @@ class Business extends Model
         if ($countReviews === 0) {
             $score = 80;
         } else if ($countReviews < 5) {
-            $score = ($avgReview / 5 * 0.3 + 0.5) * 100;
+            $score = ($avgReview / $countReviews * 0.3 + 0.5) * 100;
         } else {
-            $score = $avgReview / 5 * 100;
+            $score = $avgReview / $countReviews * 100;
         }
+
+		$score = round($score);
 
         $this->score = $score;
     }
@@ -388,8 +390,7 @@ class Business extends Model
             ->orderBy('created_at', 'DESC');
     }
 
-    public function getReviewsCountAttribute($count)
-    {
+    public function getReviewsCountAttribute($count) {
         if ($count === null) {
             $count = $this->reviews()->count();
         }
@@ -397,61 +398,39 @@ class Business extends Model
         return $count;
     }
 
-    public function reviewsAvgCode()
-    {
+    public function reviewsAvgCode() {
         return $this->hasManyAvg('score', BusinessReview::class);
     }
 
-    public function getReviewsAvgCodeAttribute()
-    {
+    public function getReviewsAvgCodeAttribute() {
         return $this->getAvgAttributeValue('reviewsAvgCode');
     }
 
-    public function reviewsExists()
-    {
+    public function reviewsExists() {
         return $this->hasManyExists(BusinessReview::class);
     }
 
-    public function getReviewsExistsAttribute()
-    {
+    public function getReviewsExistsAttribute() {
         return $this->getExistsAttributeValue('reviewsExists');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function postImages()
-    {
+    public function postImages() {
         return $this->hasMany(BusinessPost::class)->with('images.labels');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
-     */
-    public function images()
-    {
+    public function images() {
         return $this->hasManyThrough(BusinessPostImage::class, BusinessPost::class);
     }
 
-    /**
-     * @param $data
-     * @return Model
-     */
-    public function createReview($data)
-    {
+    public function createReview($data) {
         return $this->reviews()->create($data);
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function posts()
-    {
+    public function posts() {
         return $this->hasMany(BusinessPost::class);
     }
 
-    public function getPostsCountAttribute($count)
-    {
+    public function getPostsCountAttribute($count) {
         if ($count === null) {
             $count = $this->posts()->count();
         }
@@ -459,64 +438,55 @@ class Business extends Model
         return $count;
     }
 
-    public function postsExists()
-    {
+    public function postsExists() {
         return $this->hasManyExists(BusinessPost::class);
     }
 
-    public function getPostsExistsAttribute()
-    {
+    public function getPostsExistsAttribute() {
         return $this->getExistsAttributeValue('postsExists');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function users()
-    {
+    public function users() {
         return $this
             ->belongsToMany(User::class);
     }
 
-    public function user()
-    {
+    public function user() {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function optionalAttributes()
-    {
+    public function optionalAttributes() {
         return $this->belongsToMany(OptionalAttribute::class)
             ->withPivot(['description'])
             ->withTimestamps();
     }
 
-    /**
-     * Duplicate
-     * @param $value
-     */
-    public function setOpenPeriodMinsAttribute($value)
-    {
+    public function setOpenPeriodMinsAttribute($value) {
         $this->attributes['open_period_mins'] = Business::minutesCnt($value);
     }
 
-    /**
-     * Duplicate
-     * @param $value
-     */
-    public function setClosePeriodMinsAttribute($value)
-    {
+    public function setClosePeriodMinsAttribute($value) {
         $this->attributes['close_period_mins'] = Business::minutesCnt($value);
     }
 
-    public function topKeywords()
-    {
+    public function getLimit() {
+        return static::LIMIT;
+	}
+
+    public function topKeywords() {
         $business_id = $this->id;
+
+		$sql = "
+			(SELECT COUNT(*) cnt, keyword
+				FROM business_review_keywords LEFT JOIN business_reviews ON business_reviews.id=business_review_keywords.business_review_id
+				WHERE business_id=5792
+				GROUP BY keyword
+			) a
+		";
+	
         $keywords = DB::table(
             DB::raw(
-                "(SELECT COUNT(*) cnt, keyword FROM business_review_keywords WHERE business_review_id IN (SELECT business_review_id FROM business_reviews WHERE business_id=$business_id) GROUP BY keyword) a"
+				$sql
             ))
             ->whereRaw('cnt >=2')
             ->orderByRaw('cnt DESC LIMIT 10')
@@ -525,10 +495,121 @@ class Business extends Model
         return $keywords;
 	}
 
-    /**
-     * Get the value of limit
-     */ 
-    public function getLimit()
-    {
-        return static::LIMIT;    }
+	public function getTopics() {
+		$bizID = $this->id;
+        $sql = "
+            SELECT keyword FROM business_review_keywords
+                WHERE business_review_id IN (SELECT id FROM business_reviews WHERE business_id=$bizID)
+                AND ( keyword NOT LIKE '% %')
+                GROUP BY keyword
+        ";
+        $kws = DB::select($sql);
+        $kws = self::__toAssoc($kws);
+
+        $stories = [];
+        $genStory = [];
+
+        $MIN_STORY_LEN = 3;
+
+        foreach($kws as $kw) {
+            $kw = strtolower($kw['keyword']);
+            $sql = "
+                    SELECT keyword, id FROM business_review_keywords
+                        WHERE business_review_id IN (SELECT id FROM business_reviews WHERE business_id=$bizID)
+                        AND (
+                            keyword LIKE '$kw %'
+                            OR
+                            keyword LIKE '% $kw'
+                            OR
+                            keyword LIKE '% $kw %'
+                        )
+            ";
+            $rtn = DB::select($sql);
+            $rtn = self::__toAssoc($rtn);
+
+            $dat = array();
+            foreach($rtn as $r) {
+                $r['keyword'] = strtolower($r['keyword']);
+                if(!isset($dat[$r['keyword']])) {
+                    $dat[$r['keyword']] = array(
+                        'keyword'=>$r['keyword'],
+                        'cnt'=>0,
+                        'ids'=>[],
+                    );
+                }
+                $dat[$r['keyword']]['cnt']++;
+                $dat[$r['keyword']]['ids'][]= $r['id'];
+            }
+
+            if(count($dat) >= $MIN_STORY_LEN) {
+                $stories[$kw] = $dat;
+            }
+        }
+
+        $sort = array();
+        foreach($stories as $k=>$phrases) {
+            $cnt = 0;
+            foreach($phrases as $p) {
+                $cnt += $p['cnt'];
+            }
+            $sort[]= $cnt;
+        }
+        array_multisort($sort, SORT_DESC, $stories);
+
+        $frtn = array();
+        foreach($stories as $storyDat) {
+            $maxCnt = 0;
+            $maxKw = '';
+            $ids = [];
+            foreach($storyDat as $kw=>$kwd) {
+                if($kwd['cnt'] > $maxCnt) {
+                    $maxCnt = $kwd['cnt'];
+                    $maxKw = $kw;
+                }
+                $ids = array_merge($ids, $kwd['ids']);
+            }
+            if($maxCnt < 2) {
+                continue;
+            }
+
+            $ids = implode(',', $ids);
+            $sql = "
+                SELECT score FROM business_reviews
+                WHERE
+                id IN (SELECT business_review_id FROM business_review_keywords WHERE id IN ($ids))
+            ";
+            $rtn = DB::select($sql);
+            $rtn = self::__toAssoc($rtn);
+            $scores = 0;
+            foreach($rtn as $r) {
+                $r['score'] += 20;
+                if($r['score'] > 100) {
+                    $r['score'] = 100;
+                }
+                $scores += $r['score'];
+            }
+            $score = round($scores/count($rtn));
+
+			$sort = array();
+			foreach($storyDat as $s) {
+				$sort[]= $s['cnt'];
+			}
+			array_multisort($sort, SORT_DESC, $storyDat);
+
+            $frtn[]= array(
+                "title"=>$maxKw,
+                //"phrases"=>$phrases,
+                "phrases"=>$storyDat,
+                "score"=>$score,
+                "total"=>count($rtn),
+            );
+        }
+
+		return $frtn;
+	}
+
+    private static function __toAssoc($d) {
+        return json_decode(json_encode($d), true);
+    }
+
 }

@@ -37,8 +37,6 @@ export default {
                 .get('/api/v1/categories/business-stats')
                 .then(response => {
                     this.categories = response.data.data;
-                    console.log(response)
-                    console.log(JSON.stringify(this.categories) )
                 });
         }
     },

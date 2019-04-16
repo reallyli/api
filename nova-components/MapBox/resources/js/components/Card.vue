@@ -12,10 +12,6 @@
                         <b>{{__('Total reviews:')}}</b>
                     </td>
                     <td id="totalReviews">{{ totalReviews }}</td>
-                    <td>
-                        <b>{{__('Total images:')}}</b>
-                    </td>
-                    <td id="totalImages">{{ totalImages }}</td>
                 </tr>
             </table>
         </div>

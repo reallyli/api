@@ -4,7 +4,7 @@ namespace App\Nova\Metrics;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Metrics\Value;
-use App\Business;
+use App\Models\Business;
 
 class TotalBusiness extends Value
 {

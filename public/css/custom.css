@@ -95,14 +95,13 @@
 
 #business-summary table.attribute-table {
     table-layout: auto;
-    width: 50%;  
+    width: 100%;  
 }
 
 #business-summary .post-image {
     background-repeat: no-repeat;
-    /* background-size: 80% 80%; */
-    background-size: 250px;
-    height: 150px;
+    background-size: cover;
+    height: 250px;
 }
 
 #business-summary .review-image {
@@ -116,8 +115,9 @@
 #business-summary .card-items {
     background-color: #bfbfbf;
     border-radius: 8px;
-    margin-left: 6px;
-    padding: 4px 6px;
+    margin: 0 6px 4px 0 !important;
+    padding: 4px 6px !important;
+    font-size: 0.9rem;
 }
 
  #nova .dropdown-menu {
@@ -201,3 +201,9 @@
   border: 0px;
 } 
  /****************/
+
+
+.attribute-table td {
+	height: inherit;
+	padding: 0.25rem !important;
+}
