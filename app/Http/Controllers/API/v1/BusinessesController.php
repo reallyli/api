@@ -45,15 +45,16 @@ class BusinessesController extends Controller
     public function geoJson()
     {
         // 3min Lavavel 5.7
-        cache(['bounds'.request('id') => request('bounds')], 3);
-
-        [$left, $bottom, $right, $top] = explode(',', request('bounds'));
+        cache(['bounds'.request('id') => $bounds = request('bounds')], 3);
         
-        $builder = Business::search('*')->whereGeoBoundingBox(
+        [$left, $bottom, $right, $top] = explode(',', $bounds);
+        
+        // 3min Lavavel 5.7
+        cache(['builder'.request('id') => $builder = Business::search('*')->whereGeoBoundingBox(
             'location',
             ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
-        );
-        
+        )], 3);
+ 
         $businessCount = $builder->count();
 
         // 3min Lavavel 5.7
@@ -266,13 +267,11 @@ class BusinessesController extends Controller
      */
     public function stats(Request $request, Client $elasticClient)
     {
-        $this->validate($request, [
-            'top_left'     => ['required', new LatLng],
-            'bottom_right' => ['required', new LatLng]
-        ]);
-
-        $topLeft     = $request->get('top_left');
-        $bottomRight = $request->get('bottom_right');
+        ['top_left' => $topLeft, 'bottom_right' => $bottomRight] =
+            $this->validate($request, [
+                'top_left'     => ['required', new LatLng],
+                'bottom_right' => ['required', new LatLng]
+            ]);
 
         // TODO: should there be a similar check for lng values?
         // TODO: what happens (in extreme case) when search box is around where the Equator crosses the International Date Line?
@@ -282,8 +281,11 @@ class BusinessesController extends Controller
             ], 422);
         }
 
-        @session_start();
-        $_SESSION['last_biz_map_query'] = array('top_left'=>['lat'=>$topLeft['lat'], 'lon'=>$topLeft['lng']], 'bottom_right'=>['lat'=>$bottomRight['lat'], 'lon'=>$bottomRight['lng']]);
+        session([
+            'last_biz_map_query' => [
+                'top_left' => ['lat' => $topLeft['lat'], 'lon'=>$topLeft['lng']],
+                'bottom_right' => ['lat' => $bottomRight['lat'], 'lon'=>$bottomRight['lng']]
+            ]]);
         
         $totalBusinesses = Business::count();
         $totalReviews = BusinessReview::count();

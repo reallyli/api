@@ -407,7 +407,7 @@ export default {
         },
 
         updateIndexResources() {
-            var index = this.getResourceIndex();
+            let index = this.getResourceIndex();
 
             // Stop if we couldn't find the resource index
             if (index == null) {
@@ -416,6 +416,7 @@ export default {
 
             // Call the resource updater
             index.getResources();
+            index.getFilters();
         }
     }
 };

@@ -35,22 +35,26 @@ class BusinessCategory extends Filter
     {
         $categories = [];
 
-        // a
-        // a-a
-        // a-a-a
-        Category::pluck('name')->map(function ($category) {
-            return trim($category, '/');
-        })->sort()->filter(function ($category) use (&$categories) {
-            return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
-        })->filter(function ($category) use (&$categories) {
-            return substr_count($category, '-') > 1 ? true : ($categories[$category] = $category) && false;
-        })->filter(function ($category) use (&$categories) {
-            return substr_count($category, '-') > 2 ? true : ($categories[$category] = $category) && false;
-        })->filter(function ($category) use (&$categories) {
-            return substr_count($category, '-') > 3 ? true : ($categories[$category] = $category) && false;
-        })->filter(function ($category) use (&$categories) {
-            return substr_count($category, '-') > 4 ? true : ($categories[$category] = $category) && false;
-        });
+        if (cache('builder'.auth()->id())) {
+            $businesses = cache('builder'.auth()->id())->with('categories')->get();
+
+            // a
+            // a-a
+            // a-a-a
+            $businesses->flatMap->categories->pluck('name')->map(function ($category) {
+                return trim($category, '/');
+            })->sort()->filter(function ($category) use (&$categories) {
+                return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category, '-') > 1 ? true : ($categories[$category] = $category) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category, '-') > 2 ? true : ($categories[$category] = $category) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category, '-') > 3 ? true : ($categories[$category] = $category) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category, '-') > 4 ? true : ($categories[$category] = $category) && false;
+            });
+        }
 
         return $categories;
     }
