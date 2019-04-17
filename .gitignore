@@ -35,3 +35,5 @@ docker-compose.yml
 *.swn
 *.swm
 *.*~
+
+.todo

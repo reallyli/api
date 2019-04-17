@@ -16,6 +16,7 @@
   margin: 20px 0;
   text-align: left;
   -webkit-column-count: 4;
+     -moz-column-count: 4;
           column-count: 4;
 }
 

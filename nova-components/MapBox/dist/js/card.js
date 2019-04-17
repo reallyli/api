@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 20);
+/******/ 	return __webpack_require__(__webpack_require__.s = 26);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -79,7 +79,7 @@
 
 var defaultClient, mixin, responsePromise, client;
 
-defaultClient = __webpack_require__(10);
+defaultClient = __webpack_require__(12);
 mixin = __webpack_require__(1);
 responsePromise = __webpack_require__(5);
 client = __webpack_require__(4);
@@ -296,12 +296,12 @@ module.exports = g;
 // Installs ES6 Promise polyfill if a native Promise is not available
 
 if (typeof Promise === 'undefined') {
-  __webpack_require__(37).polyfill();
+  __webpack_require__(41).polyfill();
 }
 
 module.export = Promise;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)(module)))
 
 /***/ }),
 /* 4 */
@@ -380,7 +380,7 @@ module.exports = function client(impl, target) {
 
 /*jshint latedef: nofunc */
 
-var normalizeHeaderName = __webpack_require__(11);
+var normalizeHeaderName = __webpack_require__(13);
 
 function property(promise, name) {
 	return promise.then(
@@ -616,1381 +616,6 @@ module.exports = function normalizeComponent (
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports) {
-
-module.exports = extend
-
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-function extend() {
-    var target = {}
-
-    for (var i = 0; i < arguments.length; i++) {
-        var source = arguments[i]
-
-        for (var key in source) {
-            if (hasOwnProperty.call(source, key)) {
-                target[key] = source[key]
-            }
-        }
-    }
-
-    return target
-}
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2013-2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
-
-
-
-/*
- * Use invariant() to assert state which your program assumes to be true.
- *
- * Provide sprintf-style format (only %s is supported) and arguments
- * to provide information about what broke and what you were
- * expecting.
- *
- * The invariant message will be stripped in production, but the invariant
- * will remain to ensure logic does not differ in production.
- */
-
-var NODE_ENV = "development";
-
-var invariant = function(condition, format, a, b, c, d, e, f) {
-  if (NODE_ENV !== 'production') {
-    if (format === undefined) {
-      throw new Error('invariant requires an error message argument');
-    }
-  }
-
-  if (!condition) {
-    var error;
-    if (format === undefined) {
-      error = new Error(
-        'Minified exception occurred; use the non-minified dev environment ' +
-        'for the full error message and additional helpful warnings.'
-      );
-    } else {
-      var args = [a, b, c, d, e, f];
-      var argIndex = 0;
-      error = new Error(
-        format.replace(/%s/g, function() { return args[argIndex++]; })
-      );
-      error.name = 'Invariant Violation';
-    }
-
-    error.framesToPop = 1; // we don't care about invariant's own frame
-    throw error;
-  }
-};
-
-module.exports = invariant;
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2014-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-/**
- * Plain JS Object containing properties that represent an HTTP request.
- *
- * Depending on the capabilities of the underlying client, a request
- * may be cancelable. If a request may be canceled, the client will add
- * a canceled flag and cancel function to the request object. Canceling
- * the request will put the response into an error state.
- *
- * @field {string} [method='GET'] HTTP method, commonly GET, POST, PUT, DELETE or HEAD
- * @field {string|UrlBuilder} [path=''] path template with optional path variables
- * @field {Object} [params] parameters for the path template and query string
- * @field {Object} [headers] custom HTTP headers to send, in addition to the clients default headers
- * @field [entity] the HTTP entity, common for POST or PUT requests
- * @field {boolean} [canceled] true if the request has been canceled, set by the client
- * @field {Function} [cancel] cancels the request if invoked, provided by the client
- * @field {Client} [originator] the client that first handled this request, provided by the interceptor
- *
- * @class Request
- */
-
-/**
- * Plain JS Object containing properties that represent an HTTP response
- *
- * @field {Object} [request] the request object as received by the root client
- * @field {Object} [raw] the underlying request object, like XmlHttpRequest in a browser
- * @field {number} [status.code] status code of the response (i.e. 200, 404)
- * @field {string} [status.text] status phrase of the response
- * @field {Object] [headers] response headers hash of normalized name, value pairs
- * @field [entity] the response body
- *
- * @class Response
- */
-
-/**
- * HTTP client particularly suited for RESTful operations.
- *
- * @field {function} wrap wraps this client with a new interceptor returning the wrapped client
- *
- * @param {Request} the HTTP request
- * @returns {ResponsePromise<Response>} a promise the resolves to the HTTP response
- *
- * @class Client
- */
-
- /**
-  * Extended when.js Promises/A+ promise with HTTP specific helpers
-  *q
-  * @method entity promise for the HTTP entity
-  * @method status promise for the HTTP status code
-  * @method headers promise for the HTTP response headers
-  * @method header promise for a specific HTTP response header
-  *
-  * @class ResponsePromise
-  * @extends Promise
-  */
-
-var client, target, platformDefault;
-
-client = __webpack_require__(4);
-
-if (typeof Promise !== 'function' && console && console.log) {
-	console.log('An ES6 Promise implementation is required to use rest.js. See https://github.com/cujojs/when/blob/master/docs/es6-promise-shim.md for using when.js as a Promise polyfill.');
-}
-
-/**
- * Make a request with the default client
- * @param {Request} the HTTP request
- * @returns {Promise<Response>} a promise the resolves to the HTTP response
- */
-function defaultClient() {
-	return target.apply(void 0, arguments);
-}
-
-/**
- * Change the default client
- * @param {Client} client the new default client
- */
-defaultClient.setDefaultClient = function setDefaultClient(client) {
-	target = client;
-};
-
-/**
- * Obtain a direct reference to the current default client
- * @returns {Client} the default client
- */
-defaultClient.getDefaultClient = function getDefaultClient() {
-	return target;
-};
-
-/**
- * Reset the default client to the platform default
- */
-defaultClient.resetDefaultClient = function resetDefaultClient() {
-	target = platformDefault;
-};
-
-/**
- * @private
- */
-defaultClient.setPlatformDefaultClient = function setPlatformDefaultClient(client) {
-	if (platformDefault) {
-		throw new Error('Unable to redefine platformDefaultClient');
-	}
-	target = platformDefault = client;
-};
-
-module.exports = client(defaultClient);
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2012-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-/**
- * Normalize HTTP header names using the pseudo camel case.
- *
- * For example:
- *   content-type         -> Content-Type
- *   accepts              -> Accepts
- *   x-custom-header-name -> X-Custom-Header-Name
- *
- * @param {string} name the raw header name
- * @return {string} the normalized header name
- */
-function normalizeHeaderName(name) {
-	return name.toLowerCase()
-		.split('-')
-		.map(function (chunk) { return chunk.charAt(0).toUpperCase() + chunk.slice(1); })
-		.join('-');
-}
-
-module.exports = normalizeHeaderName;
-
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2012-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-var interceptor, UrlBuilder;
-
-interceptor = __webpack_require__(0);
-UrlBuilder = __webpack_require__(42);
-
-function startsWith(str, prefix) {
-	return str.indexOf(prefix) === 0;
-}
-
-function endsWith(str, suffix) {
-	return str.lastIndexOf(suffix) + suffix.length === str.length;
-}
-
-/**
- * Prefixes the request path with a common value.
- *
- * @param {Client} [client] client to wrap
- * @param {number} [config.prefix] path prefix
- *
- * @returns {Client}
- */
-module.exports = interceptor({
-	request: function (request, config) {
-		var path;
-
-		if (config.prefix && !(new UrlBuilder(request.path).isFullyQualified())) {
-			path = config.prefix;
-			if (request.path) {
-				if (!endsWith(path, '/') && !startsWith(request.path, '/')) {
-					// add missing '/' between path sections
-					path += '/';
-				}
-				path += request.path;
-			}
-			request.path = path;
-		}
-
-		return request;
-	}
-});
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2012-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-var encodedSpaceRE, urlEncodedSpaceRE;
-
-encodedSpaceRE = /%20/g;
-urlEncodedSpaceRE = /\+/g;
-
-function urlEncode(str) {
-	str = encodeURIComponent(str);
-	// spec says space should be encoded as '+'
-	return str.replace(encodedSpaceRE, '+');
-}
-
-function urlDecode(str) {
-	// spec says space should be encoded as '+'
-	str = str.replace(urlEncodedSpaceRE, ' ');
-	return decodeURIComponent(str);
-}
-
-function append(str, name, value) {
-	if (Array.isArray(value)) {
-		value.forEach(function (value) {
-			str = append(str, name, value);
-		});
-	}
-	else {
-		if (str.length > 0) {
-			str += '&';
-		}
-		str += urlEncode(name);
-		if (value !== undefined && value !== null) {
-			str += '=' + urlEncode(value);
-		}
-	}
-	return str;
-}
-
-module.exports = {
-
-	read: function (str) {
-		var obj = {};
-		str.split('&').forEach(function (entry) {
-			var pair, name, value;
-			pair = entry.split('=');
-			name = urlDecode(pair[0]);
-			if (pair.length === 2) {
-				value = urlDecode(pair[1]);
-			}
-			else {
-				value = null;
-			}
-			if (name in obj) {
-				if (!Array.isArray(obj[name])) {
-					// convert to an array, perserving currnent value
-					obj[name] = [obj[name]];
-				}
-				obj[name].push(value);
-			}
-			else {
-				obj[name] = value;
-			}
-		});
-		return obj;
-	},
-
-	write: function (obj) {
-		var str = '';
-		Object.keys(obj).forEach(function (name) {
-			str = append(str, name, obj[name]);
-		});
-		return str;
-	}
-
-};
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
-* Copyright 2014-2016 the original author or authors
-* @license MIT, see LICENSE.txt for details
-*
-* @author Scott Andrews
-*/
-
-
-
-/**
- * Parse a MIME type into it's constituent parts
- *
- * @param {string} mime MIME type to parse
- * @return {{
- *   {string} raw the original MIME type
- *   {string} type the type and subtype
- *   {string} [suffix] mime suffix, including the plus, if any
- *   {Object} params key/value pair of attributes
- * }}
- */
-function parse(mime) {
-	var params, type;
-
-	params = mime.split(';');
-	type = params[0].trim().split('+');
-
-	return {
-		raw: mime,
-		type: type[0],
-		suffix: type[1] ? '+' + type[1] : '',
-		params: params.slice(1).reduce(function (params, pair) {
-			pair = pair.split('=');
-			params[pair[0].trim()] = pair[1] ? pair[1].trim() : void 0;
-			return params;
-		}, {})
-	};
-}
-
-module.exports = {
-	parse: parse
-};
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2015-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-var interceptor, uriTemplate, mixin;
-
-interceptor = __webpack_require__(0);
-uriTemplate = __webpack_require__(46);
-mixin = __webpack_require__(1);
-
-/**
- * Applies request params to the path as a URI Template
- *
- * Params are removed from the request object, as they have been consumed.
- *
- * @see https://tools.ietf.org/html/rfc6570
- *
- * @param {Client} [client] client to wrap
- * @param {Object} [config.params] default param values
- * @param {string} [config.template] default template
- *
- * @returns {Client}
- */
-module.exports = interceptor({
-	init: function (config) {
-		config.params = config.params || {};
-		config.template = config.template || '';
-		return config;
-	},
-	request: function (request, config) {
-		var template, params;
-
-		template = request.path || config.template;
-		params = mixin({}, request.params, config.params);
-
-		request.path = uriTemplate.expand(template, params);
-		delete request.params;
-
-		return request;
-	}
-});
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * Copyright 2015-2016 the original author or authors
- * @license MIT, see LICENSE.txt for details
- *
- * @author Scott Andrews
- */
-
-
-
-/**
- * Attempt to invoke a function capturing the resulting value as a Promise
- *
- * If the method throws, the caught value used to reject the Promise.
- *
- * @param {function} work function to invoke
- * @returns {Promise} Promise for the output of the work function
- */
-function attempt(work) {
-	try {
-		return Promise.resolve(work());
-	}
-	catch (e) {
-		return Promise.reject(e);
-	}
-}
-
-module.exports = attempt;
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.decode = exports.parse = __webpack_require__(59);
-exports.encode = exports.stringify = __webpack_require__(60);
-
-
-/***/ }),
-/* 18 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-
-var stylesInDom = {};
-
-var	memoize = function (fn) {
-	var memo;
-
-	return function () {
-		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-		return memo;
-	};
-};
-
-var isOldIE = memoize(function () {
-	// Test for IE <= 9 as proposed by Browserhacks
-	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
-	// Tests for existence of standard globals is to allow style-loader
-	// to operate correctly into non-standard environments
-	// @see https://github.com/webpack-contrib/style-loader/issues/177
-	return window && document && document.all && !window.atob;
-});
-
-var getElement = (function (fn) {
-	var memo = {};
-
-	return function(selector) {
-		if (typeof memo[selector] === "undefined") {
-			memo[selector] = fn.call(this, selector);
-		}
-
-		return memo[selector]
-	};
-})(function (target) {
-	return document.querySelector(target)
-});
-
-var singleton = null;
-var	singletonCounter = 0;
-var	stylesInsertedAtTop = [];
-
-var	fixUrls = __webpack_require__(71);
-
-module.exports = function(list, options) {
-	if (typeof DEBUG !== "undefined" && DEBUG) {
-		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-	}
-
-	options = options || {};
-
-	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
-
-	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-	// tags it will allow on a page
-	if (!options.singleton) options.singleton = isOldIE();
-
-	// By default, add <style> tags to the <head> element
-	if (!options.insertInto) options.insertInto = "head";
-
-	// By default, add <style> tags to the bottom of the target
-	if (!options.insertAt) options.insertAt = "bottom";
-
-	var styles = listToStyles(list, options);
-
-	addStylesToDom(styles, options);
-
-	return function update (newList) {
-		var mayRemove = [];
-
-		for (var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-
-			domStyle.refs--;
-			mayRemove.push(domStyle);
-		}
-
-		if(newList) {
-			var newStyles = listToStyles(newList, options);
-			addStylesToDom(newStyles, options);
-		}
-
-		for (var i = 0; i < mayRemove.length; i++) {
-			var domStyle = mayRemove[i];
-
-			if(domStyle.refs === 0) {
-				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-
-				delete stylesInDom[domStyle.id];
-			}
-		}
-	};
-};
-
-function addStylesToDom (styles, options) {
-	for (var i = 0; i < styles.length; i++) {
-		var item = styles[i];
-		var domStyle = stylesInDom[item.id];
-
-		if(domStyle) {
-			domStyle.refs++;
-
-			for(var j = 0; j < domStyle.parts.length; j++) {
-				domStyle.parts[j](item.parts[j]);
-			}
-
-			for(; j < item.parts.length; j++) {
-				domStyle.parts.push(addStyle(item.parts[j], options));
-			}
-		} else {
-			var parts = [];
-
-			for(var j = 0; j < item.parts.length; j++) {
-				parts.push(addStyle(item.parts[j], options));
-			}
-
-			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-		}
-	}
-}
-
-function listToStyles (list, options) {
-	var styles = [];
-	var newStyles = {};
-
-	for (var i = 0; i < list.length; i++) {
-		var item = list[i];
-		var id = options.base ? item[0] + options.base : item[0];
-		var css = item[1];
-		var media = item[2];
-		var sourceMap = item[3];
-		var part = {css: css, media: media, sourceMap: sourceMap};
-
-		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
-		else newStyles[id].parts.push(part);
-	}
-
-	return styles;
-}
-
-function insertStyleElement (options, style) {
-	var target = getElement(options.insertInto)
-
-	if (!target) {
-		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
-	}
-
-	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
-
-	if (options.insertAt === "top") {
-		if (!lastStyleElementInsertedAtTop) {
-			target.insertBefore(style, target.firstChild);
-		} else if (lastStyleElementInsertedAtTop.nextSibling) {
-			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
-		} else {
-			target.appendChild(style);
-		}
-		stylesInsertedAtTop.push(style);
-	} else if (options.insertAt === "bottom") {
-		target.appendChild(style);
-	} else {
-		throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-	}
-}
-
-function removeStyleElement (style) {
-	if (style.parentNode === null) return false;
-	style.parentNode.removeChild(style);
-
-	var idx = stylesInsertedAtTop.indexOf(style);
-	if(idx >= 0) {
-		stylesInsertedAtTop.splice(idx, 1);
-	}
-}
-
-function createStyleElement (options) {
-	var style = document.createElement("style");
-
-	options.attrs.type = "text/css";
-
-	addAttrs(style, options.attrs);
-	insertStyleElement(options, style);
-
-	return style;
-}
-
-function createLinkElement (options) {
-	var link = document.createElement("link");
-
-	options.attrs.type = "text/css";
-	options.attrs.rel = "stylesheet";
-
-	addAttrs(link, options.attrs);
-	insertStyleElement(options, link);
-
-	return link;
-}
-
-function addAttrs (el, attrs) {
-	Object.keys(attrs).forEach(function (key) {
-		el.setAttribute(key, attrs[key]);
-	});
-}
-
-function addStyle (obj, options) {
-	var style, update, remove, result;
-
-	// If a transform function was defined, run it on the css
-	if (options.transform && obj.css) {
-	    result = options.transform(obj.css);
-
-	    if (result) {
-	    	// If transform returns a value, use that instead of the original css.
-	    	// This allows running runtime transformations on the css.
-	    	obj.css = result;
-	    } else {
-	    	// If the transform function returns a falsy value, don't add this css.
-	    	// This allows conditional loading of css
-	    	return function() {
-	    		// noop
-	    	};
-	    }
-	}
-
-	if (options.singleton) {
-		var styleIndex = singletonCounter++;
-
-		style = singleton || (singleton = createStyleElement(options));
-
-		update = applyToSingletonTag.bind(null, style, styleIndex, false);
-		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
-
-	} else if (
-		obj.sourceMap &&
-		typeof URL === "function" &&
-		typeof URL.createObjectURL === "function" &&
-		typeof URL.revokeObjectURL === "function" &&
-		typeof Blob === "function" &&
-		typeof btoa === "function"
-	) {
-		style = createLinkElement(options);
-		update = updateLink.bind(null, style, options);
-		remove = function () {
-			removeStyleElement(style);
-
-			if(style.href) URL.revokeObjectURL(style.href);
-		};
-	} else {
-		style = createStyleElement(options);
-		update = applyToTag.bind(null, style);
-		remove = function () {
-			removeStyleElement(style);
-		};
-	}
-
-	update(obj);
-
-	return function updateStyle (newObj) {
-		if (newObj) {
-			if (
-				newObj.css === obj.css &&
-				newObj.media === obj.media &&
-				newObj.sourceMap === obj.sourceMap
-			) {
-				return;
-			}
-
-			update(obj = newObj);
-		} else {
-			remove();
-		}
-	};
-}
-
-var replaceText = (function () {
-	var textStore = [];
-
-	return function (index, replacement) {
-		textStore[index] = replacement;
-
-		return textStore.filter(Boolean).join('\n');
-	};
-})();
-
-function applyToSingletonTag (style, index, remove, obj) {
-	var css = remove ? "" : obj.css;
-
-	if (style.styleSheet) {
-		style.styleSheet.cssText = replaceText(index, css);
-	} else {
-		var cssNode = document.createTextNode(css);
-		var childNodes = style.childNodes;
-
-		if (childNodes[index]) style.removeChild(childNodes[index]);
-
-		if (childNodes.length) {
-			style.insertBefore(cssNode, childNodes[index]);
-		} else {
-			style.appendChild(cssNode);
-		}
-	}
-}
-
-function applyToTag (style, obj) {
-	var css = obj.css;
-	var media = obj.media;
-
-	if(media) {
-		style.setAttribute("media", media)
-	}
-
-	if(style.styleSheet) {
-		style.styleSheet.cssText = css;
-	} else {
-		while(style.firstChild) {
-			style.removeChild(style.firstChild);
-		}
-
-		style.appendChild(document.createTextNode(css));
-	}
-}
-
-function updateLink (link, options, obj) {
-	var css = obj.css;
-	var sourceMap = obj.sourceMap;
-
-	/*
-		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
-		and there is no publicPath defined then lets turn convertToAbsoluteUrls
-		on by default.  Otherwise default to the convertToAbsoluteUrls option
-		directly
-	*/
-	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
-
-	if (options.convertToAbsoluteUrls || autoFixUrls) {
-		css = fixUrls(css);
-	}
-
-	if (sourceMap) {
-		// http://stackoverflow.com/a/26603875
-		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-	}
-
-	var blob = new Blob([css], { type: "text/css" });
-
-	var oldSrc = link.href;
-
-	link.href = URL.createObjectURL(blob);
-
-	if(oldSrc) URL.revokeObjectURL(oldSrc);
-}
-
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(21);
-module.exports = __webpack_require__(76);
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-Nova.booting(function (Vue, router) {
-    Vue.component('MapBox', __webpack_require__(22));
-    Vue.component('MapBoxDetail', __webpack_require__(75));
-});
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-var normalizeComponent = __webpack_require__(6)
-/* script */
-var __vue_script__ = __webpack_require__(23)
-/* template */
-var __vue_template__ = __webpack_require__(74)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = null
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/Card.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-b9bc2c0a", Component.options)
-  } else {
-    hotAPI.reload("data-v-b9bc2c0a", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 23 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_mapbox_gl__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie__ = __webpack_require__(65);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_js_cookie__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string__ = __webpack_require__(66);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_query_string__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__ = __webpack_require__(69);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__ = __webpack_require__(72);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__);
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-
-
-
-
-
-
-
-var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.JuV5MaCB2t0sdAgwxrJVbQ";
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-  props: ["card"],
-  data: function data() {
-    return {
-      isHiddenAttributes: false,
-      attributes: '',
-      totalBusinesses: 0,
-      totalReviews: 0,
-      totalImages: 0,
-      map: null
-    };
-  },
-  mounted: function mounted() {
-    this.init();
-  },
-
-  methods: {
-    init: function init() {
-      this.createMap();
-    },
-    setCookie: function setCookie(name, value) {
-      var hours = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-
-      __WEBPACK_IMPORTED_MODULE_2_js_cookie__["set"](name, value, { expires: 1 });
-    },
-    getCookie: function getCookie(name) {
-      return __WEBPACK_IMPORTED_MODULE_2_js_cookie__["get"](name);
-    },
-    getCenter: function getCenter() {
-      if (!this.getCookie("map_position")) {
-        return {
-          zoom: 7,
-          center: {
-            lat: 51.877827,
-            lng: 0.764215
-          }
-        };
-      }
-
-      return JSON.parse(this.getCookie("map_position"));
-    },
-    applyFilters: function applyFilters() {
-      var _this = this;
-
-      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-          useCoords = _ref.useCoords;
-
-      var getBounds = function getBounds() {
-        var topLeftLat = _this.map.getBounds().getNorthWest().lat,
-            topLeftLng = _this.map.getBounds().getNorthWest().lng,
-            bottomRightLat = _this.map.getBounds().getSouthEast().lat,
-            bottomRightLng = _this.map.getBounds().getSouthEast().lng;
-
-        if (topLeftLat > 90) {
-          topLeftLat = 90;
-        }
-        if (topLeftLat < -90) {
-          topLeftLat = -90;
-        }
-        if (topLeftLng > 180) {
-          topLeftLng = 180;
-        }
-        if (topLeftLng < -180) {
-          topLeftLng = -180;
-        }
-        if (bottomRightLat > 90) {
-          bottomRightLat = 90;
-        }
-        if (bottomRightLat < -90) {
-          bottomRightLat = -90;
-        }
-        if (bottomRightLng > 180) {
-          bottomRightLng = 180;
-        }
-        if (bottomRightLng < -180) {
-          bottomRightLng = -180;
-        }
-
-        return {
-          "top_left[lat]": topLeftLat,
-          "top_left[lng]": topLeftLng,
-          "bottom_right[lat]": bottomRightLat,
-          "bottom_right[lng]": bottomRightLng
-        };
-      };
-
-      var opts = _extends({}, this.$route.query);
-
-      if (useCoords) {
-        Object.assign(opts, getBounds());
-      }
-
-      return __WEBPACK_IMPORTED_MODULE_3_query_string___default.a.stringify(opts);
-    },
-    getGeoJsonUrl: function getGeoJsonUrl() {
-      return "/api/v1/businesses/geo-json?" + this.applyFilters();
-    },
-    getStatsUrl: function getStatsUrl() {
-      return "/api/v1/businesses/stats?" + this.applyFilters({
-        useCoords: true
-      });
-    },
-    createMap: function createMap() {
-      __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.accessToken = API_KEY;
-
-      this.map = new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v9",
-        minZoom: 4,
-        center: [this.getCenter().center.lng, this.getCenter().center.lat],
-        zoom: this.getCenter().zoom
-      });
-
-      console.log(this.getStatsUrl());
-
-      this.addClusters();
-    },
-
-    addClusters: function addClusters() {
-      var _this2 = this;
-
-      var map = this.map;
-      map.addControl(new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.NavigationControl());
-      map.addControl(new __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default.a({
-        accessToken: __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.accessToken
-      }));
-
-      this.map.on("load", function () {
-        Nova.request().get(_this2.getStatsUrl()).then(function (response) {
-          _this2.totalImages = response.data.totalImages;
-          _this2.totalReviews = response.data.totalReviews;
-          _this2.totalBusinesses = response.data.totalBusinesses;
-          _this2.attributes = response.data.attributes;
-        });
-
-        map.addSource("places", {
-          type: "geojson",
-          data: _this2.getGeoJsonUrl(),
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50
-        });
-        map.addLayer({
-          id: "clusters",
-          type: "circle",
-          source: "places",
-          filter: ["has", "point_count"],
-          paint: {
-            "circle-color": ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
-            "circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
-          }
-        });
-        map.addLayer({
-          id: "cluster-count",
-          type: "symbol",
-          source: "places",
-          filter: ["has", "point_count"],
-          layout: {
-            "text-field": "{point_count_abbreviated}",
-            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-            "text-size": 12
-          }
-        });
-        map.addLayer({
-          id: "unclustered-point",
-          type: "circle",
-          source: "places",
-          filter: ["!", ["has", "point_count"]],
-          paint: {
-            "circle-color": "#da0913",
-            "circle-radius": 4,
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#fff"
-          }
-        });
-        map.on("click", "clusters", function (e) {
-          var features = map.queryRenderedFeatures(e.point, {
-            layers: ["clusters"]
-          });
-          var clusterId = features[0].properties.cluster_id;
-          map.getSource("places").getClusterExpansionZoom(clusterId, function (err, zoom) {
-            if (err) return;
-
-            map.easeTo({
-              center: features[0].geometry.coordinates,
-              zoom: zoom
-            });
-          });
-        });
-        map.on("mouseenter", "clusters", function () {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", "clusters", function () {
-          map.getCanvas().style.cursor = "";
-        });
-        map.on("mouseenter", "unclustered-point", function () {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("click", "unclustered-point", function (e) {
-          var coordinates = e.features[0].geometry.coordinates.slice();
-          var description = e.features[0].properties.name;
-
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          }
-
-          new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Popup().setLngLat(coordinates).setHTML(description).addTo(map);
-        });
-
-        map.on("zoomend", function () {
-          var _this3 = this;
-
-          this.setCookie("map_position", JSON.stringify({
-            zoom: map.getZoom(),
-            center: map.getCenter()
-          }));
-
-          Nova.request().get(this.getStatsUrl()).then(function (response) {
-            _this3.totalImages = response.data.totalImages;
-            _this3.totalReviews = response.data.totalReviews;
-            _this3.totalBusinesses = response.data.totalBusinesses;
-            _this3.attributes = response.data.attributes;
-          });
-        }.bind(_this2));
-
-        map.on("dragend", function () {
-          var _this4 = this;
-
-          this.setCookie("map_position", JSON.stringify({
-            zoom: map.getZoom(),
-            center: map.getCenter()
-          }));
-
-          Nova.request().get(this.getStatsUrl()).then(function (response) {
-            _this4.totalImages = response.data.totalImages;
-            _this4.totalReviews = response.data.totalReviews;
-            _this4.totalBusinesses = response.data.totalBusinesses;
-            _this4.attributes = response.data.attributes;
-          });
-        }.bind(_this2));
-      });
-    }
-  }
-});
-
-/***/ }),
-/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* Mapbox GL JS is licensed under the 3-Clause BSD License. Full text of license: https://github.com/mapbox/mapbox-gl-js/blob/v0.50.0/LICENSE.txt */
@@ -2036,18 +661,18 @@ return mapboxgl;
 
 
 /***/ }),
-/* 25 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Typeahead = __webpack_require__(26);
-var debounce = __webpack_require__(30);
-var extend = __webpack_require__(7);
-var EventEmitter = __webpack_require__(31).EventEmitter;
-var exceptions = __webpack_require__(32);
-var MapboxClient = __webpack_require__(33);
+var Typeahead = __webpack_require__(30);
+var debounce = __webpack_require__(34);
+var extend = __webpack_require__(9);
+var EventEmitter = __webpack_require__(35).EventEmitter;
+var exceptions = __webpack_require__(36);
+var MapboxClient = __webpack_require__(37);
 
 /**
  * A geocoder component using Mapbox Geocoding API
@@ -2372,7 +997,1911 @@ module.exports = MapboxGeocoder;
 
 
 /***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+module.exports = extend
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+function extend() {
+    var target = {}
+
+    for (var i = 0; i < arguments.length; i++) {
+        var source = arguments[i]
+
+        for (var key in source) {
+            if (hasOwnProperty.call(source, key)) {
+                target[key] = source[key]
+            }
+        }
+    }
+
+    return target
+}
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+
+
+/*
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
+
+var NODE_ENV = "development";
+
+var invariant = function(condition, format, a, b, c, d, e, f) {
+  if (NODE_ENV !== 'production') {
+    if (format === undefined) {
+      throw new Error('invariant requires an error message argument');
+    }
+  }
+
+  if (!condition) {
+    var error;
+    if (format === undefined) {
+      error = new Error(
+        'Minified exception occurred; use the non-minified dev environment ' +
+        'for the full error message and additional helpful warnings.'
+      );
+    } else {
+      var args = [a, b, c, d, e, f];
+      var argIndex = 0;
+      error = new Error(
+        format.replace(/%s/g, function() { return args[argIndex++]; })
+      );
+      error.name = 'Invariant Violation';
+    }
+
+    error.framesToPop = 1; // we don't care about invariant's own frame
+    throw error;
+  }
+};
+
+module.exports = invariant;
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2014-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+/**
+ * Plain JS Object containing properties that represent an HTTP request.
+ *
+ * Depending on the capabilities of the underlying client, a request
+ * may be cancelable. If a request may be canceled, the client will add
+ * a canceled flag and cancel function to the request object. Canceling
+ * the request will put the response into an error state.
+ *
+ * @field {string} [method='GET'] HTTP method, commonly GET, POST, PUT, DELETE or HEAD
+ * @field {string|UrlBuilder} [path=''] path template with optional path variables
+ * @field {Object} [params] parameters for the path template and query string
+ * @field {Object} [headers] custom HTTP headers to send, in addition to the clients default headers
+ * @field [entity] the HTTP entity, common for POST or PUT requests
+ * @field {boolean} [canceled] true if the request has been canceled, set by the client
+ * @field {Function} [cancel] cancels the request if invoked, provided by the client
+ * @field {Client} [originator] the client that first handled this request, provided by the interceptor
+ *
+ * @class Request
+ */
+
+/**
+ * Plain JS Object containing properties that represent an HTTP response
+ *
+ * @field {Object} [request] the request object as received by the root client
+ * @field {Object} [raw] the underlying request object, like XmlHttpRequest in a browser
+ * @field {number} [status.code] status code of the response (i.e. 200, 404)
+ * @field {string} [status.text] status phrase of the response
+ * @field {Object] [headers] response headers hash of normalized name, value pairs
+ * @field [entity] the response body
+ *
+ * @class Response
+ */
+
+/**
+ * HTTP client particularly suited for RESTful operations.
+ *
+ * @field {function} wrap wraps this client with a new interceptor returning the wrapped client
+ *
+ * @param {Request} the HTTP request
+ * @returns {ResponsePromise<Response>} a promise the resolves to the HTTP response
+ *
+ * @class Client
+ */
+
+ /**
+  * Extended when.js Promises/A+ promise with HTTP specific helpers
+  *q
+  * @method entity promise for the HTTP entity
+  * @method status promise for the HTTP status code
+  * @method headers promise for the HTTP response headers
+  * @method header promise for a specific HTTP response header
+  *
+  * @class ResponsePromise
+  * @extends Promise
+  */
+
+var client, target, platformDefault;
+
+client = __webpack_require__(4);
+
+if (typeof Promise !== 'function' && console && console.log) {
+	console.log('An ES6 Promise implementation is required to use rest.js. See https://github.com/cujojs/when/blob/master/docs/es6-promise-shim.md for using when.js as a Promise polyfill.');
+}
+
+/**
+ * Make a request with the default client
+ * @param {Request} the HTTP request
+ * @returns {Promise<Response>} a promise the resolves to the HTTP response
+ */
+function defaultClient() {
+	return target.apply(void 0, arguments);
+}
+
+/**
+ * Change the default client
+ * @param {Client} client the new default client
+ */
+defaultClient.setDefaultClient = function setDefaultClient(client) {
+	target = client;
+};
+
+/**
+ * Obtain a direct reference to the current default client
+ * @returns {Client} the default client
+ */
+defaultClient.getDefaultClient = function getDefaultClient() {
+	return target;
+};
+
+/**
+ * Reset the default client to the platform default
+ */
+defaultClient.resetDefaultClient = function resetDefaultClient() {
+	target = platformDefault;
+};
+
+/**
+ * @private
+ */
+defaultClient.setPlatformDefaultClient = function setPlatformDefaultClient(client) {
+	if (platformDefault) {
+		throw new Error('Unable to redefine platformDefaultClient');
+	}
+	target = platformDefault = client;
+};
+
+module.exports = client(defaultClient);
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2012-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+/**
+ * Normalize HTTP header names using the pseudo camel case.
+ *
+ * For example:
+ *   content-type         -> Content-Type
+ *   accepts              -> Accepts
+ *   x-custom-header-name -> X-Custom-Header-Name
+ *
+ * @param {string} name the raw header name
+ * @return {string} the normalized header name
+ */
+function normalizeHeaderName(name) {
+	return name.toLowerCase()
+		.split('-')
+		.map(function (chunk) { return chunk.charAt(0).toUpperCase() + chunk.slice(1); })
+		.join('-');
+}
+
+module.exports = normalizeHeaderName;
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2012-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+var interceptor, UrlBuilder;
+
+interceptor = __webpack_require__(0);
+UrlBuilder = __webpack_require__(46);
+
+function startsWith(str, prefix) {
+	return str.indexOf(prefix) === 0;
+}
+
+function endsWith(str, suffix) {
+	return str.lastIndexOf(suffix) + suffix.length === str.length;
+}
+
+/**
+ * Prefixes the request path with a common value.
+ *
+ * @param {Client} [client] client to wrap
+ * @param {number} [config.prefix] path prefix
+ *
+ * @returns {Client}
+ */
+module.exports = interceptor({
+	request: function (request, config) {
+		var path;
+
+		if (config.prefix && !(new UrlBuilder(request.path).isFullyQualified())) {
+			path = config.prefix;
+			if (request.path) {
+				if (!endsWith(path, '/') && !startsWith(request.path, '/')) {
+					// add missing '/' between path sections
+					path += '/';
+				}
+				path += request.path;
+			}
+			request.path = path;
+		}
+
+		return request;
+	}
+});
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2012-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+var encodedSpaceRE, urlEncodedSpaceRE;
+
+encodedSpaceRE = /%20/g;
+urlEncodedSpaceRE = /\+/g;
+
+function urlEncode(str) {
+	str = encodeURIComponent(str);
+	// spec says space should be encoded as '+'
+	return str.replace(encodedSpaceRE, '+');
+}
+
+function urlDecode(str) {
+	// spec says space should be encoded as '+'
+	str = str.replace(urlEncodedSpaceRE, ' ');
+	return decodeURIComponent(str);
+}
+
+function append(str, name, value) {
+	if (Array.isArray(value)) {
+		value.forEach(function (value) {
+			str = append(str, name, value);
+		});
+	}
+	else {
+		if (str.length > 0) {
+			str += '&';
+		}
+		str += urlEncode(name);
+		if (value !== undefined && value !== null) {
+			str += '=' + urlEncode(value);
+		}
+	}
+	return str;
+}
+
+module.exports = {
+
+	read: function (str) {
+		var obj = {};
+		str.split('&').forEach(function (entry) {
+			var pair, name, value;
+			pair = entry.split('=');
+			name = urlDecode(pair[0]);
+			if (pair.length === 2) {
+				value = urlDecode(pair[1]);
+			}
+			else {
+				value = null;
+			}
+			if (name in obj) {
+				if (!Array.isArray(obj[name])) {
+					// convert to an array, perserving currnent value
+					obj[name] = [obj[name]];
+				}
+				obj[name].push(value);
+			}
+			else {
+				obj[name] = value;
+			}
+		});
+		return obj;
+	},
+
+	write: function (obj) {
+		var str = '';
+		Object.keys(obj).forEach(function (name) {
+			str = append(str, name, obj[name]);
+		});
+		return str;
+	}
+
+};
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+* Copyright 2014-2016 the original author or authors
+* @license MIT, see LICENSE.txt for details
+*
+* @author Scott Andrews
+*/
+
+
+
+/**
+ * Parse a MIME type into it's constituent parts
+ *
+ * @param {string} mime MIME type to parse
+ * @return {{
+ *   {string} raw the original MIME type
+ *   {string} type the type and subtype
+ *   {string} [suffix] mime suffix, including the plus, if any
+ *   {Object} params key/value pair of attributes
+ * }}
+ */
+function parse(mime) {
+	var params, type;
+
+	params = mime.split(';');
+	type = params[0].trim().split('+');
+
+	return {
+		raw: mime,
+		type: type[0],
+		suffix: type[1] ? '+' + type[1] : '',
+		params: params.slice(1).reduce(function (params, pair) {
+			pair = pair.split('=');
+			params[pair[0].trim()] = pair[1] ? pair[1].trim() : void 0;
+			return params;
+		}, {})
+	};
+}
+
+module.exports = {
+	parse: parse
+};
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2015-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+var interceptor, uriTemplate, mixin;
+
+interceptor = __webpack_require__(0);
+uriTemplate = __webpack_require__(50);
+mixin = __webpack_require__(1);
+
+/**
+ * Applies request params to the path as a URI Template
+ *
+ * Params are removed from the request object, as they have been consumed.
+ *
+ * @see https://tools.ietf.org/html/rfc6570
+ *
+ * @param {Client} [client] client to wrap
+ * @param {Object} [config.params] default param values
+ * @param {string} [config.template] default template
+ *
+ * @returns {Client}
+ */
+module.exports = interceptor({
+	init: function (config) {
+		config.params = config.params || {};
+		config.template = config.template || '';
+		return config;
+	},
+	request: function (request, config) {
+		var template, params;
+
+		template = request.path || config.template;
+		params = mixin({}, request.params, config.params);
+
+		request.path = uriTemplate.expand(template, params);
+		delete request.params;
+
+		return request;
+	}
+});
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * Copyright 2015-2016 the original author or authors
+ * @license MIT, see LICENSE.txt for details
+ *
+ * @author Scott Andrews
+ */
+
+
+
+/**
+ * Attempt to invoke a function capturing the resulting value as a Promise
+ *
+ * If the method throws, the caught value used to reject the Promise.
+ *
+ * @param {function} work function to invoke
+ * @returns {Promise} Promise for the output of the work function
+ */
+function attempt(work) {
+	try {
+		return Promise.resolve(work());
+	}
+	catch (e) {
+		return Promise.reject(e);
+	}
+}
+
+module.exports = attempt;
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.decode = exports.parse = __webpack_require__(63);
+exports.encode = exports.stringify = __webpack_require__(64);
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * JavaScript Cookie v2.2.0
+ * https://github.com/js-cookie/js-cookie
+ *
+ * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+ * Released under the MIT license
+ */
+;(function (factory) {
+	var registeredInModuleLoader = false;
+	if (true) {
+		!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
+				__WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		registeredInModuleLoader = true;
+	}
+	if (true) {
+		module.exports = factory();
+		registeredInModuleLoader = true;
+	}
+	if (!registeredInModuleLoader) {
+		var OldCookies = window.Cookies;
+		var api = window.Cookies = factory();
+		api.noConflict = function () {
+			window.Cookies = OldCookies;
+			return api;
+		};
+	}
+}(function () {
+	function extend () {
+		var i = 0;
+		var result = {};
+		for (; i < arguments.length; i++) {
+			var attributes = arguments[ i ];
+			for (var key in attributes) {
+				result[key] = attributes[key];
+			}
+		}
+		return result;
+	}
+
+	function init (converter) {
+		function api (key, value, attributes) {
+			var result;
+			if (typeof document === 'undefined') {
+				return;
+			}
+
+			// Write
+
+			if (arguments.length > 1) {
+				attributes = extend({
+					path: '/'
+				}, api.defaults, attributes);
+
+				if (typeof attributes.expires === 'number') {
+					var expires = new Date();
+					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
+					attributes.expires = expires;
+				}
+
+				// We're using "expires" because "max-age" is not supported by IE
+				attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
+
+				try {
+					result = JSON.stringify(value);
+					if (/^[\{\[]/.test(result)) {
+						value = result;
+					}
+				} catch (e) {}
+
+				if (!converter.write) {
+					value = encodeURIComponent(String(value))
+						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+				} else {
+					value = converter.write(value, key);
+				}
+
+				key = encodeURIComponent(String(key));
+				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+				key = key.replace(/[\(\)]/g, escape);
+
+				var stringifiedAttributes = '';
+
+				for (var attributeName in attributes) {
+					if (!attributes[attributeName]) {
+						continue;
+					}
+					stringifiedAttributes += '; ' + attributeName;
+					if (attributes[attributeName] === true) {
+						continue;
+					}
+					stringifiedAttributes += '=' + attributes[attributeName];
+				}
+				return (document.cookie = key + '=' + value + stringifiedAttributes);
+			}
+
+			// Read
+
+			if (!key) {
+				result = {};
+			}
+
+			// To prevent the for loop in the first place assign an empty array
+			// in case there are no cookies at all. Also prevents odd result when
+			// calling "get()"
+			var cookies = document.cookie ? document.cookie.split('; ') : [];
+			var rdecode = /(%[0-9A-Z]{2})+/g;
+			var i = 0;
+
+			for (; i < cookies.length; i++) {
+				var parts = cookies[i].split('=');
+				var cookie = parts.slice(1).join('=');
+
+				if (!this.json && cookie.charAt(0) === '"') {
+					cookie = cookie.slice(1, -1);
+				}
+
+				try {
+					var name = parts[0].replace(rdecode, decodeURIComponent);
+					cookie = converter.read ?
+						converter.read(cookie, name) : converter(cookie, name) ||
+						cookie.replace(rdecode, decodeURIComponent);
+
+					if (this.json) {
+						try {
+							cookie = JSON.parse(cookie);
+						} catch (e) {}
+					}
+
+					if (key === name) {
+						result = cookie;
+						break;
+					}
+
+					if (!key) {
+						result[name] = cookie;
+					}
+				} catch (e) {}
+			}
+
+			return result;
+		}
+
+		api.set = api;
+		api.get = function (key) {
+			return api.call(api, key);
+		};
+		api.getJSON = function () {
+			return api.apply({
+				json: true
+			}, [].slice.call(arguments));
+		};
+		api.defaults = {};
+
+		api.remove = function (key, attributes) {
+			api(key, '', extend(attributes, {
+				expires: -1
+			}));
+		};
+
+		api.withConverter = init;
+
+		return api;
+	}
+
+	return init(function () {});
+}));
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var strictUriEncode = __webpack_require__(69);
+var objectAssign = __webpack_require__(70);
+
+function encoderForArrayFormat(opts) {
+	switch (opts.arrayFormat) {
+		case 'index':
+			return function (key, value, index) {
+				return value === null ? [
+					encode(key, opts),
+					'[',
+					index,
+					']'
+				].join('') : [
+					encode(key, opts),
+					'[',
+					encode(index, opts),
+					']=',
+					encode(value, opts)
+				].join('');
+			};
+
+		case 'bracket':
+			return function (key, value) {
+				return value === null ? encode(key, opts) : [
+					encode(key, opts),
+					'[]=',
+					encode(value, opts)
+				].join('');
+			};
+
+		default:
+			return function (key, value) {
+				return value === null ? encode(key, opts) : [
+					encode(key, opts),
+					'=',
+					encode(value, opts)
+				].join('');
+			};
+	}
+}
+
+function parserForArrayFormat(opts) {
+	var result;
+
+	switch (opts.arrayFormat) {
+		case 'index':
+			return function (key, value, accumulator) {
+				result = /\[(\d*)\]$/.exec(key);
+
+				key = key.replace(/\[\d*\]$/, '');
+
+				if (!result) {
+					accumulator[key] = value;
+					return;
+				}
+
+				if (accumulator[key] === undefined) {
+					accumulator[key] = {};
+				}
+
+				accumulator[key][result[1]] = value;
+			};
+
+		case 'bracket':
+			return function (key, value, accumulator) {
+				result = /(\[\])$/.exec(key);
+				key = key.replace(/\[\]$/, '');
+
+				if (!result) {
+					accumulator[key] = value;
+					return;
+				} else if (accumulator[key] === undefined) {
+					accumulator[key] = [value];
+					return;
+				}
+
+				accumulator[key] = [].concat(accumulator[key], value);
+			};
+
+		default:
+			return function (key, value, accumulator) {
+				if (accumulator[key] === undefined) {
+					accumulator[key] = value;
+					return;
+				}
+
+				accumulator[key] = [].concat(accumulator[key], value);
+			};
+	}
+}
+
+function encode(value, opts) {
+	if (opts.encode) {
+		return opts.strict ? strictUriEncode(value) : encodeURIComponent(value);
+	}
+
+	return value;
+}
+
+function keysSorter(input) {
+	if (Array.isArray(input)) {
+		return input.sort();
+	} else if (typeof input === 'object') {
+		return keysSorter(Object.keys(input)).sort(function (a, b) {
+			return Number(a) - Number(b);
+		}).map(function (key) {
+			return input[key];
+		});
+	}
+
+	return input;
+}
+
+exports.extract = function (str) {
+	return str.split('?')[1] || '';
+};
+
+exports.parse = function (str, opts) {
+	opts = objectAssign({arrayFormat: 'none'}, opts);
+
+	var formatter = parserForArrayFormat(opts);
+
+	// Create an object with no prototype
+	// https://github.com/sindresorhus/query-string/issues/47
+	var ret = Object.create(null);
+
+	if (typeof str !== 'string') {
+		return ret;
+	}
+
+	str = str.trim().replace(/^(\?|#|&)/, '');
+
+	if (!str) {
+		return ret;
+	}
+
+	str.split('&').forEach(function (param) {
+		var parts = param.replace(/\+/g, ' ').split('=');
+		// Firefox (pre 40) decodes `%3D` to `=`
+		// https://github.com/sindresorhus/query-string/pull/37
+		var key = parts.shift();
+		var val = parts.length > 0 ? parts.join('=') : undefined;
+
+		// missing `=` should be `null`:
+		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+		val = val === undefined ? null : decodeURIComponent(val);
+
+		formatter(decodeURIComponent(key), val, ret);
+	});
+
+	return Object.keys(ret).sort().reduce(function (result, key) {
+		var val = ret[key];
+		if (Boolean(val) && typeof val === 'object' && !Array.isArray(val)) {
+			// Sort object keys, not values
+			result[key] = keysSorter(val);
+		} else {
+			result[key] = val;
+		}
+
+		return result;
+	}, Object.create(null));
+};
+
+exports.stringify = function (obj, opts) {
+	var defaults = {
+		encode: true,
+		strict: true,
+		arrayFormat: 'none'
+	};
+
+	opts = objectAssign(defaults, opts);
+
+	var formatter = encoderForArrayFormat(opts);
+
+	return obj ? Object.keys(obj).sort().map(function (key) {
+		var val = obj[key];
+
+		if (val === undefined) {
+			return '';
+		}
+
+		if (val === null) {
+			return encode(key, opts);
+		}
+
+		if (Array.isArray(val)) {
+			var result = [];
+
+			val.slice().forEach(function (val2) {
+				if (val2 === undefined) {
+					return;
+				}
+
+				result.push(formatter(key, val2, result.length));
+			});
+
+			return result.join('&');
+		}
+
+		return encode(key, opts) + '=' + encode(val, opts);
+	}).filter(function (x) {
+		return x.length > 0;
+	}).join('&') : '';
+};
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(71);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(24)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../css-loader/index.js!./mapbox-gl.css", function() {
+			var newContent = require("!!../../css-loader/index.js!./mapbox-gl.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(selector) {
+		if (typeof memo[selector] === "undefined") {
+			memo[selector] = fn.call(this, selector);
+		}
+
+		return memo[selector]
+	};
+})(function (target) {
+	return document.querySelector(target)
+});
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(72);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton) options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+	if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else {
+		throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(73);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(24)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!./mapbox-gl-geocoder.css", function() {
+			var newContent = require("!!../../../css-loader/index.js!./mapbox-gl-geocoder.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
 /* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(27);
+module.exports = __webpack_require__(78);
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+Nova.booting(function (Vue, router) {
+    Vue.component('MapBox', __webpack_require__(28));
+    Vue.component('MapBoxDetail', __webpack_require__(75));
+});
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+var normalizeComponent = __webpack_require__(6)
+/* script */
+var __vue_script__ = __webpack_require__(29)
+/* template */
+var __vue_template__ = __webpack_require__(74)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/Card.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-b9bc2c0a", Component.options)
+  } else {
+    hotAPI.reload("data-v-b9bc2c0a", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_mapbox_gl__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_js_cookie__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_query_string__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+
+
+var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.JuV5MaCB2t0sdAgwxrJVbQ";
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    props: ["card"],
+    data: function data() {
+        return {
+            map: null,
+            iControl: 0,
+            totalImages: 0,
+            attributes: "",
+            businesses: "",
+            totalReviews: 0,
+            totalBusinesses: 0,
+            isHiddenAttributes: false
+        };
+    },
+    mounted: function mounted() {
+        this.createMap();
+
+        this.getUserId();
+    },
+
+    methods: {
+        setCookie: function setCookie(name, value) {
+            var hours = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+            __WEBPACK_IMPORTED_MODULE_2_js_cookie__["set"](name, value, { expires: 1 });
+        },
+        getCookie: function getCookie(name) {
+            return __WEBPACK_IMPORTED_MODULE_2_js_cookie__["get"](name);
+        },
+        getCenter: function getCenter() {
+            if (!this.getCookie("map_position")) {
+                return {
+                    zoom: 7,
+                    center: {
+                        lat: 51.877827,
+                        lng: 0.764215
+                    }
+                };
+            }
+
+            return JSON.parse(this.getCookie("map_position"));
+        },
+        applyFilters: function applyFilters() {
+            var _this = this;
+
+            var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+                useCoords = _ref.useCoords;
+
+            var getBounds = function getBounds() {
+                var topLeftLat = _this.map.getBounds().getNorthWest().lat,
+                    topLeftLng = _this.map.getBounds().getNorthWest().lng,
+                    bottomRightLat = _this.map.getBounds().getSouthEast().lat,
+                    bottomRightLng = _this.map.getBounds().getSouthEast().lng;
+
+                if (topLeftLat > 90) {
+                    topLeftLat = 90;
+                }
+                if (topLeftLat < -90) {
+                    topLeftLat = -90;
+                }
+                if (topLeftLng > 180) {
+                    topLeftLng = 180;
+                }
+                if (topLeftLng < -180) {
+                    topLeftLng = -180;
+                }
+                if (bottomRightLat > 90) {
+                    bottomRightLat = 90;
+                }
+                if (bottomRightLat < -90) {
+                    bottomRightLat = -90;
+                }
+                if (bottomRightLng > 180) {
+                    bottomRightLng = 180;
+                }
+                if (bottomRightLng < -180) {
+                    bottomRightLng = -180;
+                }
+
+                return {
+                    "top_left[lat]": topLeftLat,
+                    "top_left[lng]": topLeftLng,
+                    "bottom_right[lat]": bottomRightLat,
+                    "bottom_right[lng]": bottomRightLng
+                };
+            };
+
+            var opts = _extends({}, this.$route.query);
+
+            if (useCoords) {
+                Object.assign(opts, getBounds());
+            }
+
+            return __WEBPACK_IMPORTED_MODULE_3_query_string___default.a.stringify(opts);
+        },
+        getGeoJsonUrl: function getGeoJsonUrl() {
+            return "/api/v1/businesses/geo-json?bounds=" + this.map.getBounds().toArray() + "&center=" + this.map.getCenter().toArray() + "&id=" + this.id;
+        },
+        getStatsUrl: function getStatsUrl() {
+            return "/api/v1/businesses/stats?" + this.applyFilters({
+                useCoords: true
+            });
+        },
+        createMap: function createMap() {
+            __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.accessToken = API_KEY;
+
+            this.map = new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Map({
+                container: "map",
+                style: "mapbox://styles/mapbox/streets-v9",
+                minZoom: 4,
+                center: [this.getCenter().center.lng, this.getCenter().center.lat],
+                zoom: this.getCenter().zoom
+            });
+
+            console.log(this.getStatsUrl());
+
+            this.addClusters();
+        },
+        addClusters: function addClusters() {
+            var _this2 = this;
+
+            this.addControl();
+
+            var map = this.map;
+            map.addControl(new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.NavigationControl());
+            map.on("load", function () {
+                Nova.request().get(_this2.getStatsUrl()).then(function (response) {
+                    _this2.totalImages = response.data.totalImages;
+                    _this2.totalReviews = response.data.totalReviews;
+                    _this2.totalBusinesses = response.data.totalBusinesses;
+                    _this2.attributes = response.data.attributes;
+                });
+
+                map.on("click", "clusters", function (e) {
+                    var features = map.queryRenderedFeatures(e.point, {
+                        layers: ["clusters"]
+                    });
+                    var clusterId = features[0].properties.cluster_id;
+                    map.getSource("places").getClusterExpansionZoom(clusterId, function (err, zoom) {
+                        if (err) return;
+
+                        map.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    });
+                });
+
+                map.on("mouseenter", "clusters", function () {
+                    map.getCanvas().style.cursor = "pointer";
+                });
+
+                map.on("mouseleave", "clusters", function () {
+                    map.getCanvas().style.cursor = "";
+                });
+
+                map.on("mouseenter", "unclustered-point", function () {
+                    map.getCanvas().style.cursor = "pointer";
+                });
+
+                map.on("click", "unclustered-point", function (e) {
+                    var coordinates = e.features[0].geometry.coordinates.slice();
+                    var description = e.features[0].properties.name;
+
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                    }
+
+                    new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Popup().setLngLat(coordinates).setHTML(description).addTo(map);
+                });
+
+                map.on("zoomend", function () {
+                    var _this3 = this;
+
+                    this.setCookie("map_position", JSON.stringify({
+                        zoom: map.getZoom(),
+                        center: map.getCenter()
+                    }));
+
+                    Nova.request().get(this.getStatsUrl()).then(function (response) {
+                        _this3.totalImages = response.data.totalImages;
+                        _this3.totalReviews = response.data.totalReviews;
+                        _this3.totalBusinesses = response.data.totalBusinesses;
+                        _this3.attributes = response.data.attributes;
+                    });
+                    this.updateMap();
+                }.bind(_this2));
+
+                map.on("dragend", function () {
+                    var _this4 = this;
+
+                    this.setCookie("map_position", JSON.stringify({
+                        zoom: map.getZoom(),
+                        center: map.getCenter()
+                    }));
+
+                    Nova.request().get(this.getStatsUrl()).then(function (response) {
+                        _this4.totalImages = response.data.totalImages;
+                        _this4.totalReviews = response.data.totalReviews;
+                        _this4.totalBusinesses = response.data.totalBusinesses;
+                        _this4.attributes = response.data.attributes;
+                    });
+
+                    this.updateMap();
+                }.bind(_this2));
+
+                map.addSource("places", {
+                    type: "geojson",
+                    data: _this2.getGeoJsonUrl(),
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 50
+                });
+
+                map.addLayer({
+                    id: "clusters",
+                    type: "circle",
+                    source: "places",
+                    filter: ["has", "point_count"],
+                    paint: {
+                        "circle-color": ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
+                        "circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
+                    }
+                });
+
+                map.addLayer({
+                    id: "cluster-count",
+                    type: "symbol",
+                    source: "places",
+                    filter: ["has", "point_count"],
+                    layout: {
+                        "text-field": "{point_count_abbreviated}",
+                        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+                        "text-size": 12
+                    }
+                });
+
+                map.addLayer({
+                    id: "unclustered-point",
+                    type: "circle",
+                    source: "places",
+                    filter: ["!", ["has", "point_count"]],
+                    paint: {
+                        "circle-color": "#da0913",
+                        "circle-radius": 4,
+                        "circle-stroke-width": 1,
+                        "circle-stroke-color": "#fff"
+                    }
+                });
+
+                // resource table is updated earlier than map
+                // Once map is rendered, we need to update the table.
+                _this2.updateIndexResources();
+            });
+        },
+        getUserId: function getUserId() {
+            var _this5 = this;
+
+            Nova.request().get("/nova-vendor/mapbox/id").then(function (_ref2) {
+                var data = _ref2.data;
+                return _this5.id = data;
+            });
+        },
+        updateMap: function updateMap() {
+            this.redraw();
+
+            // set search bounds
+            this.removeControl().addControl();
+
+            this.updateIndexResources();
+        },
+        redraw: function redraw() {
+            this.map.getSource("places").setData(this.getGeoJsonUrl());
+        },
+        addControl: function addControl() {
+            this.map.addControl(this.iControl = new __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default.a({
+                accessToken: __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.accessToken,
+                placeholder: "Search for places in the map",
+                bbox: _.flatten(this.map.getBounds().toArray()),
+                proximity: {
+                    longitude: this.map.getCenter().lng,
+                    latitude: this.map.getCenter().lat
+                }
+            }));
+        },
+        removeControl: function removeControl() {
+            this.map.removeControl(this.iControl);
+
+            return this;
+        },
+        getResourceIndex: function getResourceIndex() {
+            // Walk up the parent tree
+            for (var parent = this.$parent; typeof parent !== "undefined"; parent = parent.$parent) {
+                // Return the eparent if it is a resource index
+                if (parent.$options.name === "resource-index") {
+                    return parent;
+                }
+            }
+            // Failed to find resource index
+            return null;
+        },
+        updateIndexResources: function updateIndexResources() {
+            var index = this.getResourceIndex();
+
+            // Stop if we couldn't find the resource index
+            if (index == null) {
+                return;
+            }
+
+            // Call the resource updater
+            index.getResources();
+        }
+    }
+});
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2431,20 +2960,20 @@ module.exports = MapboxGeocoder;
  *
  * new Suggestions(input, data);
  */
-var Suggestions = __webpack_require__(27);
+var Suggestions = __webpack_require__(31);
 window.Suggestions = module.exports = Suggestions;
 
 
 /***/ }),
-/* 27 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var extend = __webpack_require__(7);
-var fuzzy = __webpack_require__(28);
-var List = __webpack_require__(29);
+var extend = __webpack_require__(9);
+var fuzzy = __webpack_require__(32);
+var List = __webpack_require__(33);
 
 var Suggestions = function(el, data, options) {
   options = options || {};
@@ -2689,7 +3218,7 @@ Suggestions.prototype.render = function(item, sourceFormatting) {
 module.exports = Suggestions;
 
 /***/ }),
-/* 28 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -2839,7 +3368,7 @@ fuzzy.filter = function(pattern, arr, opts) {
 
 
 /***/ }),
-/* 29 */
+/* 33 */
 /***/ (function(module, exports) {
 
 'Use strict';
@@ -2947,7 +3476,7 @@ module.exports = List;
 
 
 /***/ }),
-/* 30 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -3331,7 +3860,7 @@ module.exports = debounce;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 31 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3786,7 +4315,7 @@ function unwrapListeners(arr) {
 
 
 /***/ }),
-/* 32 */
+/* 36 */
 /***/ (function(module, exports) {
 
 module.exports = {
@@ -3810,14 +4339,14 @@ module.exports = {
 
 
 /***/ }),
-/* 33 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var invariant = __webpack_require__(8);
-var makeService = __webpack_require__(34);
+var invariant = __webpack_require__(10);
+var makeService = __webpack_require__(38);
 
 var MapboxGeocoding = makeService('MapboxGeocoding');
 
@@ -4068,16 +4597,16 @@ module.exports = MapboxGeocoding;
 
 
 /***/ }),
-/* 34 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var invariant = __webpack_require__(8);
-var constants = __webpack_require__(35);
-var client = __webpack_require__(36);
-var getUser = __webpack_require__(63);
+var invariant = __webpack_require__(10);
+var constants = __webpack_require__(39);
+var client = __webpack_require__(40);
+var getUser = __webpack_require__(67);
 
 /**
  * Services all have the same constructor pattern: you initialize them
@@ -4131,7 +4660,7 @@ module.exports = makeService;
 
 
 /***/ }),
-/* 35 */
+/* 39 */
 /***/ (function(module, exports) {
 
 
@@ -4139,7 +4668,7 @@ module.exports.DEFAULT_ENDPOINT = 'https://api.mapbox.com';
 
 
 /***/ }),
-/* 36 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4148,26 +4677,26 @@ module.exports.DEFAULT_ENDPOINT = 'https://api.mapbox.com';
 // install ES6 Promise polyfill
 __webpack_require__(3);
 
-var rest = __webpack_require__(39);
+var rest = __webpack_require__(43);
 
 // rest.js client with MIME support
 module.exports = function(config) {
   return rest
-    .wrap(__webpack_require__(41))
-    .wrap(__webpack_require__(12), { prefix: config.endpoint })
-    .wrap(__webpack_require__(43), { mime: 'application/json' })
-    .wrap(__webpack_require__(15))
-    .wrap(__webpack_require__(53), {
+    .wrap(__webpack_require__(45))
+    .wrap(__webpack_require__(14), { prefix: config.endpoint })
+    .wrap(__webpack_require__(47), { mime: 'application/json' })
+    .wrap(__webpack_require__(17))
+    .wrap(__webpack_require__(57), {
       params: { access_token: config.accessToken }
     })
-    .wrap(__webpack_require__(54), { access_token: config.accessToken })
-    .wrap(__webpack_require__(61))
-    .wrap(__webpack_require__(62));
+    .wrap(__webpack_require__(58), { access_token: config.accessToken })
+    .wrap(__webpack_require__(65))
+    .wrap(__webpack_require__(66));
 };
 
 
 /***/ }),
-/* 37 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -5354,10 +5883,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38), __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(42), __webpack_require__(2)))
 
 /***/ }),
-/* 38 */
+/* 42 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -5547,7 +6076,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 39 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5560,8 +6089,8 @@ process.umask = function() { return 0; };
 
 
 
-var rest = __webpack_require__(10),
-    browser = __webpack_require__(40);
+var rest = __webpack_require__(12),
+    browser = __webpack_require__(44);
 
 rest.setPlatformDefaultClient(browser);
 
@@ -5569,7 +6098,7 @@ module.exports = rest;
 
 
 /***/ }),
-/* 40 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5584,7 +6113,7 @@ module.exports = rest;
 
 var normalizeHeaderName, responsePromise, client, headerSplitRE;
 
-normalizeHeaderName = __webpack_require__(11);
+normalizeHeaderName = __webpack_require__(13);
 responsePromise = __webpack_require__(5);
 client = __webpack_require__(4);
 
@@ -5743,7 +6272,7 @@ module.exports = client(function xhr(request) {
 
 
 /***/ }),
-/* 41 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5786,7 +6315,7 @@ module.exports = interceptor({
 
 
 /***/ }),
-/* 42 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5802,7 +6331,7 @@ module.exports = interceptor({
 var mixin, xWWWFormURLEncoder, origin, urlRE, absoluteUrlRE, fullyQualifiedUrlRE;
 
 mixin = __webpack_require__(1);
-xWWWFormURLEncoder = __webpack_require__(13);
+xWWWFormURLEncoder = __webpack_require__(15);
 
 urlRE = /([a-z][a-z0-9\+\-\.]*:)\/\/([^@]+@)?(([^:\/]+)(:([0-9]+))?)?(\/[^?#]*)?(\?[^#]*)?(#\S*)?/i;
 absoluteUrlRE = /^([a-z][a-z0-9\-\+\.]*:\/\/|\/)/i;
@@ -6009,7 +6538,7 @@ module.exports = UrlBuilder;
 
 
 /***/ }),
-/* 43 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6025,9 +6554,9 @@ module.exports = UrlBuilder;
 var interceptor, mime, registry, noopConverter, missingConverter, attempt;
 
 interceptor = __webpack_require__(0);
-mime = __webpack_require__(14);
-registry = __webpack_require__(44);
-attempt = __webpack_require__(16);
+mime = __webpack_require__(16);
+registry = __webpack_require__(48);
+attempt = __webpack_require__(18);
 
 noopConverter = {
 	read: function (obj) { return obj; },
@@ -6125,7 +6654,7 @@ module.exports = interceptor({
 
 
 /***/ }),
-/* 44 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6140,7 +6669,7 @@ module.exports = interceptor({
 
 var mime, registry;
 
-mime = __webpack_require__(14);
+mime = __webpack_require__(16);
 
 function Registry(mimes) {
 
@@ -6224,11 +6753,11 @@ function Registry(mimes) {
 registry = new Registry({});
 
 // include provided serializers
-registry.register('application/hal', __webpack_require__(45));
-registry.register('application/json', __webpack_require__(50));
-registry.register('application/x-www-form-urlencoded', __webpack_require__(13));
-registry.register('multipart/form-data', __webpack_require__(51));
-registry.register('text/plain', __webpack_require__(52));
+registry.register('application/hal', __webpack_require__(49));
+registry.register('application/json', __webpack_require__(54));
+registry.register('application/x-www-form-urlencoded', __webpack_require__(15));
+registry.register('multipart/form-data', __webpack_require__(55));
+registry.register('text/plain', __webpack_require__(56));
 
 registry.register('+json', registry.delegate('application/json'));
 
@@ -6236,7 +6765,7 @@ module.exports = registry;
 
 
 /***/ }),
-/* 45 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6251,10 +6780,10 @@ module.exports = registry;
 
 var pathPrefix, template, find, lazyPromise, responsePromise;
 
-pathPrefix = __webpack_require__(12);
-template = __webpack_require__(15);
-find = __webpack_require__(48);
-lazyPromise = __webpack_require__(49);
+pathPrefix = __webpack_require__(14);
+template = __webpack_require__(17);
+find = __webpack_require__(52);
+lazyPromise = __webpack_require__(53);
 responsePromise = __webpack_require__(5);
 
 function defineProperty(obj, name, value) {
@@ -6371,7 +6900,7 @@ module.exports = {
 
 
 /***/ }),
-/* 46 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6386,7 +6915,7 @@ module.exports = {
 
 var uriEncoder, operations, prefixRE;
 
-uriEncoder = __webpack_require__(47);
+uriEncoder = __webpack_require__(51);
 
 prefixRE = /^([^:]*):([0-9]+)$/;
 operations = {
@@ -6538,7 +7067,7 @@ module.exports = {
 
 
 /***/ }),
-/* 47 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6715,7 +7244,7 @@ module.exports = {
 
 
 /***/ }),
-/* 48 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6753,7 +7282,7 @@ module.exports = {
 
 
 /***/ }),
-/* 49 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6766,7 +7295,7 @@ module.exports = {
 
 
 
-var attempt = __webpack_require__(16);
+var attempt = __webpack_require__(18);
 
 /**
  * Create a promise whose work is started only when a handler is registered.
@@ -6806,7 +7335,7 @@ module.exports = lazyPromise;
 
 
 /***/ }),
-/* 50 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6850,7 +7379,7 @@ module.exports = createConverter();
 
 
 /***/ }),
-/* 51 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6921,7 +7450,7 @@ module.exports = {
 
 
 /***/ }),
-/* 52 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6948,7 +7477,7 @@ module.exports = {
 
 
 /***/ }),
-/* 53 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7024,7 +7553,7 @@ module.exports = interceptor({
 
 
 /***/ }),
-/* 54 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7034,9 +7563,9 @@ module.exports = interceptor({
 __webpack_require__(3);
 
 var interceptor = __webpack_require__(0);
-var linkParser = __webpack_require__(55);
-var url = __webpack_require__(56);
-var querystring = __webpack_require__(17);
+var linkParser = __webpack_require__(59);
+var url = __webpack_require__(60);
+var querystring = __webpack_require__(19);
 
 var paginator = interceptor({
   success: function (response, config) {
@@ -7070,7 +7599,7 @@ module.exports = paginator;
 
 
 /***/ }),
-/* 55 */
+/* 59 */
 /***/ (function(module, exports) {
 
 module.exports = (function(){
@@ -8263,7 +8792,7 @@ module.exports = (function(){
 
 
 /***/ }),
-/* 56 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8290,8 +8819,8 @@ module.exports = (function(){
 
 
 
-var punycode = __webpack_require__(57);
-var util = __webpack_require__(58);
+var punycode = __webpack_require__(61);
+var util = __webpack_require__(62);
 
 exports.parse = urlParse;
 exports.resolve = urlResolve;
@@ -8366,7 +8895,7 @@ var protocolPattern = /^([a-z0-9.+-]+:)/i,
       'gopher:': true,
       'file:': true
     },
-    querystring = __webpack_require__(17);
+    querystring = __webpack_require__(19);
 
 function urlParse(url, parseQueryString, slashesDenoteHost) {
   if (url && util.isObject(url) && url instanceof Url) return url;
@@ -9002,7 +9531,7 @@ Url.prototype.parseHost = function() {
 
 
 /***/ }),
-/* 57 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/punycode v1.4.1 by @mathias */
@@ -9538,10 +10067,10 @@ Url.prototype.parseHost = function() {
 
 }(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)(module), __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)(module), __webpack_require__(2)))
 
 /***/ }),
-/* 58 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9564,7 +10093,7 @@ module.exports = {
 
 
 /***/ }),
-/* 59 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9655,7 +10184,7 @@ var isArray = Array.isArray || function (xs) {
 
 
 /***/ }),
-/* 60 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9747,7 +10276,7 @@ var objectKeys = Object.keys || function (obj) {
 
 
 /***/ }),
-/* 61 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var interceptor = __webpack_require__(0);
@@ -9772,7 +10301,7 @@ module.exports = standardResponse;
 
 
 /***/ }),
-/* 62 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9810,13 +10339,13 @@ module.exports = callbackify;
 
 
 /***/ }),
-/* 63 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var b64 = __webpack_require__(64);
+var b64 = __webpack_require__(68);
 
 /**
  * Access tokens actually are data, and using them we can derive
@@ -9849,7 +10378,7 @@ module.exports = getUser;
 
 
 /***/ }),
-/* 64 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10002,394 +10531,7 @@ module.exports = {
 
 
 /***/ }),
-/* 65 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * JavaScript Cookie v2.2.0
- * https://github.com/js-cookie/js-cookie
- *
- * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
- * Released under the MIT license
- */
-;(function (factory) {
-	var registeredInModuleLoader = false;
-	if (true) {
-		!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-				(__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
-				__WEBPACK_AMD_DEFINE_FACTORY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		registeredInModuleLoader = true;
-	}
-	if (true) {
-		module.exports = factory();
-		registeredInModuleLoader = true;
-	}
-	if (!registeredInModuleLoader) {
-		var OldCookies = window.Cookies;
-		var api = window.Cookies = factory();
-		api.noConflict = function () {
-			window.Cookies = OldCookies;
-			return api;
-		};
-	}
-}(function () {
-	function extend () {
-		var i = 0;
-		var result = {};
-		for (; i < arguments.length; i++) {
-			var attributes = arguments[ i ];
-			for (var key in attributes) {
-				result[key] = attributes[key];
-			}
-		}
-		return result;
-	}
-
-	function init (converter) {
-		function api (key, value, attributes) {
-			var result;
-			if (typeof document === 'undefined') {
-				return;
-			}
-
-			// Write
-
-			if (arguments.length > 1) {
-				attributes = extend({
-					path: '/'
-				}, api.defaults, attributes);
-
-				if (typeof attributes.expires === 'number') {
-					var expires = new Date();
-					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
-					attributes.expires = expires;
-				}
-
-				// We're using "expires" because "max-age" is not supported by IE
-				attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
-
-				try {
-					result = JSON.stringify(value);
-					if (/^[\{\[]/.test(result)) {
-						value = result;
-					}
-				} catch (e) {}
-
-				if (!converter.write) {
-					value = encodeURIComponent(String(value))
-						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
-				} else {
-					value = converter.write(value, key);
-				}
-
-				key = encodeURIComponent(String(key));
-				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
-				key = key.replace(/[\(\)]/g, escape);
-
-				var stringifiedAttributes = '';
-
-				for (var attributeName in attributes) {
-					if (!attributes[attributeName]) {
-						continue;
-					}
-					stringifiedAttributes += '; ' + attributeName;
-					if (attributes[attributeName] === true) {
-						continue;
-					}
-					stringifiedAttributes += '=' + attributes[attributeName];
-				}
-				return (document.cookie = key + '=' + value + stringifiedAttributes);
-			}
-
-			// Read
-
-			if (!key) {
-				result = {};
-			}
-
-			// To prevent the for loop in the first place assign an empty array
-			// in case there are no cookies at all. Also prevents odd result when
-			// calling "get()"
-			var cookies = document.cookie ? document.cookie.split('; ') : [];
-			var rdecode = /(%[0-9A-Z]{2})+/g;
-			var i = 0;
-
-			for (; i < cookies.length; i++) {
-				var parts = cookies[i].split('=');
-				var cookie = parts.slice(1).join('=');
-
-				if (!this.json && cookie.charAt(0) === '"') {
-					cookie = cookie.slice(1, -1);
-				}
-
-				try {
-					var name = parts[0].replace(rdecode, decodeURIComponent);
-					cookie = converter.read ?
-						converter.read(cookie, name) : converter(cookie, name) ||
-						cookie.replace(rdecode, decodeURIComponent);
-
-					if (this.json) {
-						try {
-							cookie = JSON.parse(cookie);
-						} catch (e) {}
-					}
-
-					if (key === name) {
-						result = cookie;
-						break;
-					}
-
-					if (!key) {
-						result[name] = cookie;
-					}
-				} catch (e) {}
-			}
-
-			return result;
-		}
-
-		api.set = api;
-		api.get = function (key) {
-			return api.call(api, key);
-		};
-		api.getJSON = function () {
-			return api.apply({
-				json: true
-			}, [].slice.call(arguments));
-		};
-		api.defaults = {};
-
-		api.remove = function (key, attributes) {
-			api(key, '', extend(attributes, {
-				expires: -1
-			}));
-		};
-
-		api.withConverter = init;
-
-		return api;
-	}
-
-	return init(function () {});
-}));
-
-
-/***/ }),
-/* 66 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var strictUriEncode = __webpack_require__(67);
-var objectAssign = __webpack_require__(68);
-
-function encoderForArrayFormat(opts) {
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, index) {
-				return value === null ? [
-					encode(key, opts),
-					'[',
-					index,
-					']'
-				].join('') : [
-					encode(key, opts),
-					'[',
-					encode(index, opts),
-					']=',
-					encode(value, opts)
-				].join('');
-			};
-
-		case 'bracket':
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'[]=',
-					encode(value, opts)
-				].join('');
-			};
-
-		default:
-			return function (key, value) {
-				return value === null ? encode(key, opts) : [
-					encode(key, opts),
-					'=',
-					encode(value, opts)
-				].join('');
-			};
-	}
-}
-
-function parserForArrayFormat(opts) {
-	var result;
-
-	switch (opts.arrayFormat) {
-		case 'index':
-			return function (key, value, accumulator) {
-				result = /\[(\d*)\]$/.exec(key);
-
-				key = key.replace(/\[\d*\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				}
-
-				if (accumulator[key] === undefined) {
-					accumulator[key] = {};
-				}
-
-				accumulator[key][result[1]] = value;
-			};
-
-		case 'bracket':
-			return function (key, value, accumulator) {
-				result = /(\[\])$/.exec(key);
-				key = key.replace(/\[\]$/, '');
-
-				if (!result) {
-					accumulator[key] = value;
-					return;
-				} else if (accumulator[key] === undefined) {
-					accumulator[key] = [value];
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-
-		default:
-			return function (key, value, accumulator) {
-				if (accumulator[key] === undefined) {
-					accumulator[key] = value;
-					return;
-				}
-
-				accumulator[key] = [].concat(accumulator[key], value);
-			};
-	}
-}
-
-function encode(value, opts) {
-	if (opts.encode) {
-		return opts.strict ? strictUriEncode(value) : encodeURIComponent(value);
-	}
-
-	return value;
-}
-
-function keysSorter(input) {
-	if (Array.isArray(input)) {
-		return input.sort();
-	} else if (typeof input === 'object') {
-		return keysSorter(Object.keys(input)).sort(function (a, b) {
-			return Number(a) - Number(b);
-		}).map(function (key) {
-			return input[key];
-		});
-	}
-
-	return input;
-}
-
-exports.extract = function (str) {
-	return str.split('?')[1] || '';
-};
-
-exports.parse = function (str, opts) {
-	opts = objectAssign({arrayFormat: 'none'}, opts);
-
-	var formatter = parserForArrayFormat(opts);
-
-	// Create an object with no prototype
-	// https://github.com/sindresorhus/query-string/issues/47
-	var ret = Object.create(null);
-
-	if (typeof str !== 'string') {
-		return ret;
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return ret;
-	}
-
-	str.split('&').forEach(function (param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		// Firefox (pre 40) decodes `%3D` to `=`
-		// https://github.com/sindresorhus/query-string/pull/37
-		var key = parts.shift();
-		var val = parts.length > 0 ? parts.join('=') : undefined;
-
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		formatter(decodeURIComponent(key), val, ret);
-	});
-
-	return Object.keys(ret).sort().reduce(function (result, key) {
-		var val = ret[key];
-		if (Boolean(val) && typeof val === 'object' && !Array.isArray(val)) {
-			// Sort object keys, not values
-			result[key] = keysSorter(val);
-		} else {
-			result[key] = val;
-		}
-
-		return result;
-	}, Object.create(null));
-};
-
-exports.stringify = function (obj, opts) {
-	var defaults = {
-		encode: true,
-		strict: true,
-		arrayFormat: 'none'
-	};
-
-	opts = objectAssign(defaults, opts);
-
-	var formatter = encoderForArrayFormat(opts);
-
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
-
-		if (val === undefined) {
-			return '';
-		}
-
-		if (val === null) {
-			return encode(key, opts);
-		}
-
-		if (Array.isArray(val)) {
-			var result = [];
-
-			val.slice().forEach(function (val2) {
-				if (val2 === undefined) {
-					return;
-				}
-
-				result.push(formatter(key, val2, result.length));
-			});
-
-			return result.join('&');
-		}
-
-		return encode(key, opts) + '=' + encode(val, opts);
-	}).filter(function (x) {
-		return x.length > 0;
-	}).join('&') : '';
-};
-
-
-/***/ }),
-/* 67 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10402,7 +10544,7 @@ module.exports = function (str) {
 
 
 /***/ }),
-/* 68 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10499,41 +10641,10 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 /***/ }),
-/* 69 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(70);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(19)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../css-loader/index.js!./mapbox-gl.css", function() {
-			var newContent = require("!!../../css-loader/index.js!./mapbox-gl.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 70 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(18)(false);
+exports = module.exports = __webpack_require__(23)(false);
 // imports
 
 
@@ -10544,7 +10655,7 @@ exports.push([module.i, ".mapboxgl-map {\n    font: 12px/20px 'Helvetica Neue', 
 
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports) {
 
 
@@ -10639,41 +10750,10 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 72 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(73);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(19)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../../css-loader/index.js!./mapbox-gl-geocoder.css", function() {
-			var newContent = require("!!../../../css-loader/index.js!./mapbox-gl-geocoder.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
 /* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(18)(false);
+exports = module.exports = __webpack_require__(23)(false);
 // imports
 
 
@@ -10703,30 +10783,19 @@ var render = function() {
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total businesses:")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "totalBusinesses" } }, [
-              _vm._v(
-                "\n                    " +
-                  _vm._s(_vm.totalBusinesses) +
-                  "\n                "
-              )
+              _vm._v(_vm._s(_vm.totalBusinesses))
             ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total reviews:")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "totalReviews" } }, [
-              _vm._v(
-                "\n                    " +
-                  _vm._s(_vm.totalReviews) +
-                  "\n                "
-              )
+              _vm._v(_vm._s(_vm.totalReviews))
             ]),
             _vm._v(" "),
-            _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("")))])]),
+            _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total images:")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "totalImages" } }, [
-              _vm._v(
-                "\n                    " +
-                  "\n                "
-              )
+              _vm._v(_vm._s(_vm.totalImages))
             ])
           ])
         ])
@@ -10743,7 +10812,7 @@ var render = function() {
                 }
               }
             },
-            [_vm._v("Hide Attributes")]
+            [_vm._v("\n        Hide Attributes\n    ")]
           )
         : _c(
             "button",
@@ -10755,7 +10824,7 @@ var render = function() {
                 }
               }
             },
-            [_vm._v("Show Attributes")]
+            [_vm._v("\n        Show Attributes\n    ")]
           ),
       _vm._v(" "),
       !_vm.isHiddenAttributes
@@ -10784,9 +10853,9 @@ if (false) {
 var disposed = false
 var normalizeComponent = __webpack_require__(6)
 /* script */
-var __vue_script__ = __webpack_require__(78)
+var __vue_script__ = __webpack_require__(76)
 /* template */
-var __vue_template__ = __webpack_require__(79)
+var __vue_template__ = __webpack_require__(77)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -10826,28 +10895,21 @@ module.exports = Component.exports
 
 /***/ }),
 /* 76 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 77 */,
-/* 78 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_mapbox_gl__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie__ = __webpack_require__(65);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_js_cookie__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string__ = __webpack_require__(66);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_query_string___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_query_string__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__ = __webpack_require__(69);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__ = __webpack_require__(22);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__ = __webpack_require__(72);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__);
 //
 //
@@ -11039,7 +11101,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 });
 
 /***/ }),
-/* 79 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -11096,6 +11158,12 @@ if (false) {
     require("vue-hot-reload-api")      .rerender("data-v-3cbb35fc", module.exports)
   }
 }
+
+/***/ }),
+/* 78 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
 
 /***/ })
 /******/ ]);

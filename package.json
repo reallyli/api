@@ -32,9 +32,5 @@
         "popper.js": "^1.12",
         "query-string": "^6.2.0",
         "vue": "^2.5.7"
-    },
-    "dependencies": {
-        "webpack": "^4.30.0",
-        "webpack-cli": "^3.3.0"
     }
 }

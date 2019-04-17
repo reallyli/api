@@ -32,7 +32,6 @@ class AppServiceProvider extends ServiceProvider
         BusinessAttribute::observe(BusinessAttributeObserver::class);
         BusinessCategory::observe(BusinessCategoryObserver::class);
         BusinessReview::observe(BusinessReviewObserver::class);
-
     }
 
     /**
@@ -42,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(GoogleFaceDetectionService::class, function() {
+        $this->app->singleton(GoogleFaceDetectionService::class, function () {
             return new GoogleFaceDetectionService(new ImageAnnotatorClient());
         });
     }
