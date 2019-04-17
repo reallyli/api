@@ -281,12 +281,6 @@ class BusinessesController extends Controller
             ], 422);
         }
 
-        session([
-            'last_biz_map_query' => [
-                'top_left' => ['lat' => $topLeft['lat'], 'lon'=>$topLeft['lng']],
-                'bottom_right' => ['lat' => $bottomRight['lat'], 'lon'=>$bottomRight['lng']]
-            ]]);
-        
         $totalBusinesses = Business::count();
         $totalReviews = BusinessReview::count();
 

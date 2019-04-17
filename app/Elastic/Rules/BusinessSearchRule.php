@@ -27,19 +27,6 @@ class BusinessSearchRule extends SearchRule
     {
         $keyword = $this->builder->query;
 
-        $filter = [];
-        if ($bounds = session('last_biz_map_query')) {
-            $filter = [
-                'bool' => [
-                    'must' => [
-                        'geo_bounding_box' => [
-                            'location' => $bounds,
-                        ],
-                    ],
-                ],
-            ];
-        }
-
         if (strlen($keyword) >= 4) {
             $fuzz = strlen($keyword) >= 6 ? 2 : 1;
         } else {
@@ -61,9 +48,6 @@ class BusinessSearchRule extends SearchRule
                     ],
             ],
         ];
-        if (!empty($filter)) {
-            $queryMatch['filter'] = $filter;
-        }
 
         return $queryMatch;
     }
