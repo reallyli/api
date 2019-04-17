@@ -33,13 +33,25 @@ class BusinessCategory extends Filter
      */
     public function options(Request $request)
     {
-        $categories = Category::pluck('name')->all();
-        $results    = [];
+        $categories = [];
 
-        foreach ($categories as $category) {
-            $results[$category] = $category;
-        }
+        // a
+        // a-a
+        // a-a-a
+        Category::pluck('name')->map(function ($category) {
+            return trim($category, '/');
+        })->sort()->filter(function ($category) use (&$categories) {
+            return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
+        })->filter(function ($category) use (&$categories) {
+            return substr_count($category, '-') > 1 ? true : ($categories[$category] = $category) && false;
+        })->filter(function ($category) use (&$categories) {
+            return substr_count($category, '-') > 2 ? true : ($categories[$category] = $category) && false;
+        })->filter(function ($category) use (&$categories) {
+            return substr_count($category, '-') > 3 ? true : ($categories[$category] = $category) && false;
+        })->filter(function ($category) use (&$categories) {
+            return substr_count($category, '-') > 4 ? true : ($categories[$category] = $category) && false;
+        });
 
-        return $results;
+        return $categories;
     }
 }
