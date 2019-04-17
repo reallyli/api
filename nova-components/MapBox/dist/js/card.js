@@ -2896,6 +2896,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
             // Call the resource updater
             index.getResources();
+            index.getFilters();
         }
     }
 });
