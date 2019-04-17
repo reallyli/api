@@ -5,13 +5,17 @@
             <table>
                 <tr>
                     <td>
-                        <b>{{__('Total businesses:')}}</b>
+                        <b>{{ __("Total businesses:") }}</b>
                     </td>
                     <td id="totalBusinesses">{{ totalBusinesses }}</td>
                     <td>
-                        <b>{{__('Total reviews:')}}</b>
+                        <b>{{ __("Total reviews:") }}</b>
                     </td>
                     <td id="totalReviews">{{ totalReviews }}</td>
+                    <td>
+                        <b>{{ __("Total images:") }}</b>
+                    </td>
+                    <td id="totalImages">{{ totalImages }}</td>
                 </tr>
             </table>
         </div>
@@ -19,13 +23,21 @@
             v-if="!isHiddenAttributes"
             class="show_attributes"
             v-on:click="isHiddenAttributes = !isHiddenAttributes"
-        >Hide Attributes</button>
+        >
+            Hide Attributes
+        </button>
         <button
             v-else
             class="show_attributes"
             v-on:click="isHiddenAttributes = !isHiddenAttributes"
-        >Show Attributes</button>
-        <div v-if="!isHiddenAttributes" id="attributes" v-html="attributes"></div>
+        >
+            Show Attributes
+        </button>
+        <div
+            v-if="!isHiddenAttributes"
+            id="attributes"
+            v-html="attributes"
+        ></div>
     </card>
 </template>
 
@@ -49,14 +61,16 @@ export default {
             iControl: 0,
             totalImages: 0,
             attributes: "",
-            businesses: '',
+            businesses: "",
             totalReviews: 0,
             totalBusinesses: 0,
-            isHiddenAttributes: false,
+            isHiddenAttributes: false
         };
     },
     mounted() {
         this.createMap();
+
+        this.getUserId();
     },
     methods: {
         setCookie(name, value, hours = 1) {
@@ -129,7 +143,11 @@ export default {
             return queryString.stringify(opts);
         },
         getGeoJsonUrl() {
-            return `/api/v1/businesses/geo-json?bounds=${this.map.getBounds().toArray()}&id=${this.id}`;
+            return `/api/v1/businesses/geo-json?bounds=${this.map
+                .getBounds()
+                .toArray()}&center=${this.map.getCenter().toArray()}&id=${
+                this.id
+            }`;
         },
         getStatsUrl() {
             return `/api/v1/businesses/stats?${this.applyFilters({
@@ -137,8 +155,6 @@ export default {
             })}`;
         },
         createMap() {
-            this.getUserId();
-
             mapboxgl.accessToken = API_KEY;
 
             this.map = new mapboxgl.Map({
@@ -158,12 +174,13 @@ export default {
         },
 
         addClusters() {
-            this.addGeocoderControl();
+            this.addControl();
 
             let map = this.map;
             map.addControl(new mapboxgl.NavigationControl());
             map.on("load", () => {
-                Nova.request().get(this.getStatsUrl())
+                Nova.request()
+                    .get(this.getStatsUrl())
                     .then(response => {
                         this.totalImages = response.data.totalImages;
                         this.totalReviews = response.data.totalReviews;
@@ -219,10 +236,13 @@ export default {
                 map.on(
                     "zoomend",
                     function() {
-                        this.setCookie("map_position", JSON.stringify({
-                            zoom: map.getZoom(),
-                            center: map.getCenter()
-                        }));
+                        this.setCookie(
+                            "map_position",
+                            JSON.stringify({
+                                zoom: map.getZoom(),
+                                center: map.getCenter()
+                            })
+                        );
 
                         Nova.request()
                             .get(this.getStatsUrl())
@@ -234,25 +254,30 @@ export default {
                                 this.attributes = response.data.attributes;
                             });
                         this.updateMap();
-
                     }.bind(this)
                 );
 
-                map.on("dragend", function() {
-                    this.setCookie("map_position", JSON.stringify({
-                            zoom: map.getZoom(),
-                            center: map.getCenter()
-                        }));
+                map.on(
+                    "dragend",
+                    function() {
+                        this.setCookie(
+                            "map_position",
+                            JSON.stringify({
+                                zoom: map.getZoom(),
+                                center: map.getCenter()
+                            })
+                        );
 
-                    Nova.request().get(this.getStatsUrl())
-                        .then(response => {
-                            this.totalImages = response.data.totalImages;
-                            this.totalReviews = response.data.totalReviews;
-                            this.totalBusinesses =
-                                response.data.totalBusinesses;
-                            this.attributes = response.data.attributes;
-                        });
-                    
+                        Nova.request()
+                            .get(this.getStatsUrl())
+                            .then(response => {
+                                this.totalImages = response.data.totalImages;
+                                this.totalReviews = response.data.totalReviews;
+                                this.totalBusinesses =
+                                    response.data.totalBusinesses;
+                                this.attributes = response.data.attributes;
+                            });
+
                         this.updateMap();
                     }.bind(this)
                 );
@@ -274,12 +299,20 @@ export default {
                         "circle-color": [
                             "step",
                             ["get", "point_count"],
-                            "#51bbd6", 100, "#f1f075", 750, "#f28cb1"
+                            "#51bbd6",
+                            100,
+                            "#f1f075",
+                            750,
+                            "#f28cb1"
                         ],
                         "circle-radius": [
                             "step",
                             ["get", "point_count"],
-                            20, 100, 30, 750, 40
+                            20,
+                            100,
+                            30,
+                            750,
+                            40
                         ]
                     }
                 });
@@ -298,7 +331,7 @@ export default {
                         "text-size": 12
                     }
                 });
-                
+
                 map.addLayer({
                     id: "unclustered-point",
                     type: "circle",
@@ -316,43 +349,42 @@ export default {
                 // Once map is rendered, we need to update the table.
                 this.updateIndexResources();
             });
-
-           
         },
 
         getUserId() {
-            Nova.request().get('/nova-vendor/mapbox/id')
-                .then(({data}) => this.id = data)
+            Nova.request()
+                .get("/nova-vendor/mapbox/id")
+                .then(({ data }) => (this.id = data));
         },
 
         updateMap() {
             this.redraw();
 
             // set search bounds
-            this.removeGeocoderControl().addGeocoderControl();
+            this.removeControl().addControl();
 
             this.updateIndexResources();
         },
 
         redraw() {
-            this.map.getSource('places').setData(
-                this.getGeoJsonUrl()
+            this.map.getSource("places").setData(this.getGeoJsonUrl());
+        },
+
+        addControl() {
+            this.map.addControl(
+                (this.iControl = new MapboxGeocoder({
+                    accessToken: mapboxgl.accessToken,
+                    placeholder: "Search for places in the map",
+                    bbox: _.flatten(this.map.getBounds().toArray()),
+                    proximity: {
+                        longitude: this.map.getCenter().lng,
+                        latitude: this.map.getCenter().lat
+                    }
+                }))
             );
         },
 
-        addGeocoderControl() {
-            this.map.addControl(this.iControl = new MapboxGeocoder({
-                accessToken: mapboxgl.accessToken,
-                placeholder: 'Search for places in the map',
-                bbox: _.flatten(this.map.getBounds().toArray()),
-                proximity: {
-                    longitude: this.map.getCenter().lng,
-                    latitude: this.map.getCenter().lat
-                }
-            }));
-        },
-
-        removeGeocoderControl() {
+        removeControl() {
             this.map.removeControl(this.iControl);
 
             return this;
@@ -360,9 +392,13 @@ export default {
 
         getResourceIndex() {
             // Walk up the parent tree
-            for(let parent = this.$parent; typeof parent !== 'undefined'; parent = parent.$parent) {
+            for (
+                let parent = this.$parent;
+                typeof parent !== "undefined";
+                parent = parent.$parent
+            ) {
                 // Return the eparent if it is a resource index
-                if(parent.$options.name === 'resource-index') {
+                if (parent.$options.name === "resource-index") {
                     return parent;
                 }
             }
@@ -374,13 +410,13 @@ export default {
             var index = this.getResourceIndex();
 
             // Stop if we couldn't find the resource index
-            if(index == null) {
+            if (index == null) {
                 return;
             }
 
             // Call the resource updater
             index.getResources();
-        },
+        }
     }
 };
 </script>
