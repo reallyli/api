@@ -70,7 +70,7 @@ export default {
     mounted() {
         this.createMap();
 
-        this.getUserId();
+        console.log(Nova.config.userId);
     },
     methods: {
         setCookie(name, value, hours = 1) {
@@ -146,7 +146,7 @@ export default {
             return `/api/v1/businesses/geo-json?bounds=${this.map
                 .getBounds()
                 .toArray()}&center=${this.map.getCenter().toArray()}&id=${
-                this.id
+                Nova.config.userId
             }`;
         },
         getStatsUrl() {
@@ -349,12 +349,6 @@ export default {
                 // Once map is rendered, we need to update the table.
                 this.updateIndexResources();
             });
-        },
-
-        getUserId() {
-            Nova.request()
-                .get("/nova-vendor/mapbox/id")
-                .then(({ data }) => (this.id = data));
         },
 
         updateMap() {

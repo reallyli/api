@@ -2602,7 +2602,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
     mounted: function mounted() {
         this.createMap();
 
-        this.getUserId();
+        console.log(Nova.config.userId);
     },
 
     methods: {
@@ -2681,7 +2681,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             return __WEBPACK_IMPORTED_MODULE_3_query_string___default.a.stringify(opts);
         },
         getGeoJsonUrl: function getGeoJsonUrl() {
-            return "/api/v1/businesses/geo-json?bounds=" + this.map.getBounds().toArray() + "&center=" + this.map.getCenter().toArray() + "&id=" + this.id;
+            return "/api/v1/businesses/geo-json?bounds=" + this.map.getBounds().toArray() + "&center=" + this.map.getCenter().toArray() + "&id=" + Nova.config.userId;
         },
         getStatsUrl: function getStatsUrl() {
             return "/api/v1/businesses/stats?" + this.applyFilters({
@@ -2838,14 +2838,6 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                 // resource table is updated earlier than map
                 // Once map is rendered, we need to update the table.
                 _this2.updateIndexResources();
-            });
-        },
-        getUserId: function getUserId() {
-            var _this5 = this;
-
-            Nova.request().get("/nova-vendor/mapbox/id").then(function (_ref2) {
-                var data = _ref2.data;
-                return _this5.id = data;
             });
         },
         updateMap: function updateMap() {
