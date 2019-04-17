@@ -57,14 +57,14 @@
  #ImageModal .modal-header {
      border: 0px;
  }
- 
+
  #ImageModal .modal-content {
     height: auto;
     min-height: 100%;
     max-width: none;
     border-radius: 0;
  }
- 
+
 #business-summary #stats {
     display: none;
 }
@@ -95,7 +95,7 @@
 
 #business-summary table.attribute-table {
     table-layout: auto;
-    width: 100%;  
+    width: 100%;
 }
 
 #business-summary .post-image {
@@ -122,7 +122,6 @@
 
  #nova .dropdown-menu {
     position: absolute;
-    left: 0;
     z-index: 1000;
     display: inherit;
     padding: 0px;
@@ -131,15 +130,15 @@
  #nova .dropdown-menu .list-reset{
      margin-bottom: 0px;
  }
- 
+
  .pl-search {
      padding-left: 2.75rem !important;
  }
- 
+
  table.table{
      width: 100%;
  }
- 
+
  /**
  * Datatable
  */
@@ -199,7 +198,7 @@
   background: #3a3a3a;
   color: #fff !important;
   border: 0px;
-} 
+}
  /****************/
 
 
