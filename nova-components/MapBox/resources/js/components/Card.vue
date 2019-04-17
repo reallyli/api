@@ -390,33 +390,25 @@ export default {
             return this;
         },
 
-        getResourceIndex() {
-            // Walk up the parent tree
-            for (
-                let parent = this.$parent;
-                typeof parent !== "undefined";
-                parent = parent.$parent
-            ) {
-                // Return the eparent if it is a resource index
-                if (parent.$options.name === "resource-index") {
-                    return parent;
-                }
+        getResourceIndex(parent) {
+            // Return the parent if it is a resource index
+            if (parent.$options.name === "resource-index") {
+                return parent;
             }
-            // Failed to find resource index
-            return null;
+
+            return typeof parent === "undefined"
+                ? null
+                : this.getResourceIndex(parent.$parent);
         },
 
         updateIndexResources() {
-            let index = this.getResourceIndex();
+            let index = this.getResourceIndex(this.$parent);
 
-            // Stop if we couldn't find the resource index
-            if (index == null) {
-                return;
+            if (index) {
+                // Call the resource updater
+                index.getResources();
+                index.getFilters();
             }
-
-            // Call the resource updater
-            index.getResources();
-            index.getFilters();
         }
     }
 };

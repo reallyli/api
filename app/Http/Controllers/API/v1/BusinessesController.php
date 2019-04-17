@@ -50,7 +50,7 @@ class BusinessesController extends Controller
         [$left, $bottom, $right, $top] = explode(',', $bounds);
         
         // 3min Lavavel 5.7
-        cache(['builder'.request('id') => $builder = Business::search('*')->whereGeoBoundingBox(
+        cache(['business_builder'.request('id') => $builder = Business::search('*')->whereGeoBoundingBox(
             'location',
             ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
         )], 3);

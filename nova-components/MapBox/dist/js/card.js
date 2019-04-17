@@ -2875,28 +2875,22 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
             return this;
         },
-        getResourceIndex: function getResourceIndex() {
-            // Walk up the parent tree
-            for (var parent = this.$parent; typeof parent !== "undefined"; parent = parent.$parent) {
-                // Return the eparent if it is a resource index
-                if (parent.$options.name === "resource-index") {
-                    return parent;
-                }
+        getResourceIndex: function getResourceIndex(parent) {
+            // Return the parent if it is a resource index
+            if (parent.$options.name === "resource-index") {
+                return parent;
             }
-            // Failed to find resource index
-            return null;
+
+            return typeof parent === "undefined" ? null : this.getResourceIndex(parent.$parent);
         },
         updateIndexResources: function updateIndexResources() {
-            var index = this.getResourceIndex();
+            var index = this.getResourceIndex(this.$parent);
 
-            // Stop if we couldn't find the resource index
-            if (index == null) {
-                return;
+            if (index) {
+                // Call the resource updater
+                index.getResources();
+                index.getFilters();
             }
-
-            // Call the resource updater
-            index.getResources();
-            index.getFilters();
         }
     }
 });

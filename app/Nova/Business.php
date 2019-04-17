@@ -72,7 +72,7 @@ class Business extends Resource
         }
 
         if ($businessCount <= ModelBusiness::LIMIT) {
-            $businesses = cache('builder'.auth()->id())
+            $businesses = cache('business_builder'.auth()->id())
                             ->select(['businesses.id'])
                             ->take(ModelBusiness::LIMIT)
                             ->get()
