@@ -68,17 +68,17 @@ class Business extends Resource
 
         if ($businessCount > 0 && $businessCount <= ModelBusiness::LIMIT) {
             [$left, $bottom, $right, $top] = explode(',', cache('bounds'.auth()->id()));
-    
+
             $builder = $query->getModel()->search('*')->whereGeoBoundingBox(
                 'location',
                 ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
             );
-    
+
             $businesses = $builder->select(['businesses.id'])->take(ModelBusiness::LIMIT)->get()->pluck('id')->toArray();
-    
+
             $query->whereIn('businesses.id', $businesses);
         }
-        
+
         if (empty($request->get('orderBy'))) {
             $query->getQuery()->orders = [];
             $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
@@ -120,7 +120,9 @@ class Business extends Resource
                         'name' => $name,
                         'id'   => $this->id,
                     ])->render();
-                }),
+                })
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
             Text::make('uuid')
                 ->onlyOnDetail(),
             Text::make('bio')
@@ -165,7 +167,6 @@ class Business extends Resource
 //            ]),
             HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
             HasMany::make('Reviews', 'reviews', BusinessReview::class),
-            HasMany::make('Attributes', 'attributes', BusinessAttribute::class),
             BelongsToMany::make('Business Attributes', 'optionalAttributes', OptionalAttribute::class)
                 ->fields(function () {
                     return [
