@@ -4,6 +4,13 @@ Nova.booting((Vue, router) => {
             name: 'report',
             path: '/report',
             component: require('./components/Tool'),
+            meta: { label: 'Top Categories' }
+        },
+        {
+            name: 'top',
+            path: '/report',
+            component: require('./components/Tool'),
+            meta: { label: 'Top Categories' }
         },
     ])
 })

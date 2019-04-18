@@ -10305,9 +10305,7 @@ exports.default = {
 
             return Nova.request().get('/nova-api/' + this.resourceName + '/filters').then(function (response) {
                 _this6.filters = response.data;
-                if(_this6.initializeFilterValuesFromQueryString){
-                    _this6.initializeFilterValuesFromQueryString();
-                }
+                if( _this6.initializeFilterValuesFromQueryString)   _this6.initializeFilterValuesFromQueryString();
             });
         },
 
@@ -11203,7 +11201,7 @@ exports.default = {
             this.currentFilters = [];
             Nova.request().get('/nova-api/' + this.resourceName + '/lens/' + this.lens + '/filters').then(function (response) {
                 _this4.filters = response.data;
-                _this4.initializeFilterValuesFromQueryString();
+                if( _this4.initializeFilterValuesFromQueryString ) _this4.initializeFilterValuesFromQueryString();
             });
         },
 
