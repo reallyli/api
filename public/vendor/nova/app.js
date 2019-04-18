@@ -2361,8 +2361,6 @@ exports.default = {
                 });
             }
 
-            console.log('asdf');
-
             this.$emit('update:currentFilters', this.current);
             this.$emit('changed');
         }
@@ -10305,7 +10303,10 @@ exports.default = {
 
             return Nova.request().get('/nova-api/' + this.resourceName + '/filters').then(function (response) {
                 _this6.filters = response.data;
-                if( _this6.initializeFilterValuesFromQueryString)   _this6.initializeFilterValuesFromQueryString();
+                console.log('about ot die', _this6);
+                if(_this6.initializeFilterValuesFromQueryString) {
+                    _this6.initializeFilterValuesFromQueryString()
+                }
             });
         },
 
@@ -11201,7 +11202,7 @@ exports.default = {
             this.currentFilters = [];
             Nova.request().get('/nova-api/' + this.resourceName + '/lens/' + this.lens + '/filters').then(function (response) {
                 _this4.filters = response.data;
-                if( _this4.initializeFilterValuesFromQueryString ) _this4.initializeFilterValuesFromQueryString();
+                _this4.initializeFilterValuesFromQueryString();
             });
         },
 
@@ -41215,11 +41216,11 @@ var render = function() {
       "div",
       { staticClass: "w-full max-w-xl" },
       [
-        _c("heading", { staticClass: "flex mb-3" }, [_vm._v("Get Started1")]),
+        _c("heading", { staticClass: "flex mb-3" }, [_vm._v("Get Started")]),
         _vm._v(" "),
         _c("p", { staticClass: "text-90 leading-tight mb-8" }, [
           _vm._v(
-            "Welcome to Nova! Get familiar with Nova and explore it's features in the documentation: test"
+            "Welcome to Nova! Get familiar with Nova and explore it's features in the documentation:"
           )
         ]),
         _vm._v(" "),

@@ -105,14 +105,6 @@
         },
         {
             "type": "path",
-            "url": "./nova-components/MapBox"
-        },
-        {
-            "type": "path",
-            "url": "./nova-components/Map"
-        },
-        {
-            "type": "path",
             "url": "./nova-components/MapField"
         },
         {

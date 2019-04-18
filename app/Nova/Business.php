@@ -62,19 +62,22 @@ class Business extends Resource
         'internal_score' => 'desc'
     ];
 
+    /**
+     * {@inheritdoc }
+     */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        $businessCount = cache('business_count'.auth()->id());
+        if ($businessCount = cache('business_count'.auth()->id()) == 0) {
+            return $query->where('id', 0); // no result
+        }
 
-        if ($businessCount > 0 && $businessCount <= ModelBusiness::LIMIT) {
-            [$left, $bottom, $right, $top] = explode(',', cache('bounds'.auth()->id()));
-
-            $builder = $query->getModel()->search('*')->whereGeoBoundingBox(
-                'location',
-                ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
-            );
-
-            $businesses = $builder->select(['businesses.id'])->take(ModelBusiness::LIMIT)->get()->pluck('id')->toArray();
+        if ($businessCount <= ModelBusiness::LIMIT) {
+            $businesses = cache('business_builder'.auth()->id())
+                            ->select(['businesses.id'])
+                            ->take(ModelBusiness::LIMIT)
+                            ->get()
+                            ->pluck('id')
+                            ->toArray();
 
             $query->whereIn('businesses.id', $businesses);
         }
@@ -156,7 +159,7 @@ class Business extends Resource
                 ->hideFromIndex()
                 ->hideFromDetail(),
             Image::make('Image', 'avatar')->disk('s3')
-                ->creationRules('required', 'image','mimes:jpg,jpeg,png,gif'),
+                ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
             BelongsToMany::make('Categories', 'categories', Category::class),
             HasMany::make('DataAI Keywords', 'keywords', BusinessKeyword::class),
 //            new Panel('Posts', [
