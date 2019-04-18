@@ -2862,14 +2862,12 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
         updateIndexResources: function updateIndexResources() {
             var _this5 = this;
 
-            if (this.index) {
-                // Call the resource updater
-                this.index.getResources();
-                this.index.getFilters();
-                setTimeout(function () {
-                    return _this5.totalBusinesses = _this5.index.allMatchingResourceCount;
-                }, 2000);
-            }
+            // Call the resource updater
+            this.index.getResources();
+            this.index.getFilters();
+            setTimeout(function () {
+                return _this5.totalBusinesses = _this5.index.allMatchingResourceCount;
+            }, 2000);
         }
     }
 });

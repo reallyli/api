@@ -378,16 +378,14 @@ export default {
         },
 
         updateIndexResources() {
-            if (this.index) {
-                // Call the resource updater
-                this.index.getResources();
-                this.index.getFilters();
-                setTimeout(
-                    () =>
-                        (this.totalBusinesses = this.index.allMatchingResourceCount),
-                    2000
-                );
-            }
+            // Call the resource updater
+            this.index.getResources();
+            this.index.getFilters();
+            setTimeout(
+                () =>
+                    (this.totalBusinesses = this.index.allMatchingResourceCount),
+                2000
+            );
         }
     }
 };
