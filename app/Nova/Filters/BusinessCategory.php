@@ -42,7 +42,8 @@ class BusinessCategory extends Filter
             cache('business_builder'.auth()->id())
                 ->with('categories')->get()
                 ->flatMap->categories->pluck('name')->map(function ($category) {
-                    return trim($category, '/');
+                    return $category;
+                    // return trim($category, '/');
                 })->sort()->filter(function ($category) use (&$categories) {
                     return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
                 })->filter(function ($category) use (&$categories) {
