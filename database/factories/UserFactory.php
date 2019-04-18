@@ -1,6 +1,8 @@
 <?php
 
 use Faker\Generator as Faker;
+use function GuzzleHttp\Psr7\str;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,9 +21,9 @@ $factory->define(App\Models\User::class, function (Faker $faker) {
         'name'           => $faker->name,
         'email'          => $faker->unique()->safeEmail,
         'phone_number'   => $faker->unique()->phoneNumber,
-        'email_verified_at' => new DateTime(),
+        'email_verified_at' => now(),
         'verified'       => true,
-        'password'       => bcrypt('secret'),
-        'remember_token' => str_random(10),
+        'password'       => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        'remember_token' => Str::random(10),
     ];
 });

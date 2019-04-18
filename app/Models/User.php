@@ -15,6 +15,8 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, HasApiTokens, HasUuid, HasRoles;
 
+    public static $validSignatureDuring = 60; // 1hr
+
     /**
      * The table associated with the model.
      *
@@ -145,18 +147,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendVerification()
     {
         if (isset($this->email)) {
-//            $this->sendEmailVerificationNotification();
-            $this->notify(new VerifyEmailNotification());
+            $this->notify(new VerifyEmailNotification);
         } else {
             $pin = \HelperServiceProvider::generatePin(5);
 
-            $this->fill([
+            $this->update([
                 'verification_code' => Hash::make($pin),
-            ])->save();
+            ]);
 
             $application = config('app.name');
             \Twilio::message($this->phone_number, "Thanks for registering to {$application}. Your verification pin is {$pin}. Please sign in to verify your account.");
         }
     }
-
 }

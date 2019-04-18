@@ -30,14 +30,14 @@ Route::get('/manifest', function () {
     ];
 });
 
-Route::put('put-test', function(\Illuminate\Support\Facades\Request $request) {
+Route::put('put-test', function (\Illuminate\Support\Facades\Request $request) {
     return $request;
 });
 
 Route::post('/login', 'Authentication\LoginController@store');
 Route::post('/register', 'Authentication\RegistrationController@create');
 
-Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email')->middleware('signed', 'auth:api');
+Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email');
 
 //use Illuminate\Http\Request;
 //
@@ -46,7 +46,7 @@ Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')
 //})->name('verification.email')->middleware('signed');
 
 
-Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->name('verification.sms')->middleware('auth:api');
+Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->name('verification.sms');
 
 /**
  *  Business
@@ -67,7 +67,7 @@ Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/logout', 'Authentication\LoginController@logout');
 
 
-    Route::get('test', function() {
+    Route::get('test', function () {
         return ['key' => 'value'];
     });
 
