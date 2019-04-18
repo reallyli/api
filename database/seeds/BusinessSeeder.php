@@ -18,7 +18,7 @@ class BusinessSeeder extends Seeder
 
         $position = 1;
 
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 50; $i++) {
             $businesses = [];
             $categories = [];
             $business_category = [];

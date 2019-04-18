@@ -19,7 +19,9 @@ class ConvertOwnershipRequestIdToUuid extends Migration
     public function up()
     {
         Schema::table('ownership_requests', function (Blueprint $table) {
-            $table->dropForeign(['business_id']);
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign(['business_id']);
+            }
             $table->dropColumn('business_id');
         });
     }

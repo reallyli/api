@@ -14,8 +14,11 @@ class CreateBusinessIdOnOwnerShipRequests extends Migration
     public function up()
     {
         Schema::table('ownership_requests', function (Blueprint $table) {
-            $table->uuid('business_id')->after('id');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->uuid('business_id')->after('id');
+            } else {
+                $table->uuid('business_id')->nullable()->after('id');
+            }
         });
     }
-
 }

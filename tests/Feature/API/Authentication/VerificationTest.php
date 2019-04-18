@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\API;
 
-
 use App\Notifications\VerifyEmailNotification;
 use Artisan;
 use Tests\TestCase;
@@ -13,7 +12,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 
 class VerificationTest extends TestCase
 {
-    use WithFaker, RefreshDatabase;
+    use RefreshDatabase;
 
     protected function setUp()
     {
@@ -30,7 +29,6 @@ class VerificationTest extends TestCase
         Notification::assertNothingSent();
 
         $user = make('App\Models\User', [
-            'phone' => $this->faker->phoneNumber,
             'email_verified_at' => null
         ]);
 
@@ -48,7 +46,6 @@ class VerificationTest extends TestCase
             $user,
             VerifyEmailNotification::class
         );
-
     }
 
     /** @test */
