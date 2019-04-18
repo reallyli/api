@@ -11201,7 +11201,7 @@ exports.default = {
             this.currentFilters = [];
             Nova.request().get('/nova-api/' + this.resourceName + '/lens/' + this.lens + '/filters').then(function (response) {
                 _this4.filters = response.data;
-                _this4.initializeFilterValuesFromQueryString();
+                if( _this4.initializeFilterValuesFromQueryString ) _this4.initializeFilterValuesFromQueryString();
             });
         },
 

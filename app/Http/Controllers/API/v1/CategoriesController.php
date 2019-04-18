@@ -35,16 +35,17 @@ class CategoriesController extends Controller
         }
         return CategoryResource::collection($results);
     }
-    
-    public function businessStats(CategoryService $CategoryService)
+
+    public function businessStats(CategoryService $CategoryService, Request $request)
     {
-        $categories = BusinessCategory::leftJoin('categories', 'business_category.category_id', '=', 'categories.id')
-            ->groupBy('categories.name')
+
+        $categories = BusinessCategory::leftJoin('categories', 'business_category.category_id', '=', 'categories.id');
+        if($request->search)  $categories = $categories->where('categories.name', 'like', '%'.$request->search.'%');
+         $categories = $categories->groupBy('categories.name')
             ->orderBy(\DB::raw('count(business_category.id)'), 'desc')
             ->select("categories.name", \DB::raw('count(business_category.id) as businessCount'))
             ->limit(20)
-            ->get()
-        ;
+            ->get();
         return $this->sendResponse($categories, 200);
     }
 }

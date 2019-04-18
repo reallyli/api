@@ -175,7 +175,7 @@ exports = module.exports = __webpack_require__(5)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Scoped Styles */\n", ""]);
+exports.push([module.i, "\n.filter-category-input{max-width: 300px;width:50%;\n}\n", ""]);
 
 // exports
 
@@ -661,12 +661,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     props: {},
     data: function data() {
         return {
-            categories: []
+            categories: [],
+            filter: {
+                catergory_name: ''
+            }
         };
     },
 
@@ -674,9 +681,23 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         getCategories: function getCategories() {
             var _this = this;
 
-            axios.get('/api/v1/categories/business-stats').then(function (response) {
+            self = this;
+            axios.get('/api/v1/categories/business-stats', {
+                params: {
+                    search: self.filter.catergory_name
+                }
+            }).then(function (response) {
                 _this.categories = response.data.data;
+                console.log(response.data.data);
             });
+        },
+
+        // filterCats(){
+        //
+        // },
+        clearFilter: function clearFilter() {
+            this.filter.catergory_name = '';
+            this.getCategories();
         }
     },
     mounted: function mounted() {
@@ -697,6 +718,54 @@ var render = function() {
     [
       _c("heading", { staticClass: "mb-6" }, [
         _vm._v(_vm._s(this.$route.meta.label))
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "flex p-6 justify-between w-1/3" }, [
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.filter.catergory_name,
+              expression: "filter.catergory_name"
+            }
+          ],
+          staticClass:
+            "form-control form-input form-input-bordered filter-category-input",
+          attrs: { type: "text", placeholder: "Filter" },
+          domProps: { value: _vm.filter.catergory_name },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.$set(_vm.filter, "catergory_name", $event.target.value)
+            }
+          }
+        }),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass: "btn btn-default text-white bg-success",
+            attrs: { type: "button" },
+            on: {
+              click: function($event) {
+                return _vm.getCategories()
+              }
+            }
+          },
+          [_vm._v("Filter")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass: "btn text-white btn-default bg-70",
+            on: { click: _vm.clearFilter }
+          },
+          [_vm._v("Clear filter")]
+        )
       ]),
       _vm._v(" "),
       _c(
