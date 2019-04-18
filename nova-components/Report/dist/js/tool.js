@@ -60,31 +60,11 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(1);
-module.exports = __webpack_require__(11);
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-Nova.booting(function (Vue, router) {
-    router.addRoutes([{
-        name: 'report',
-        path: '/report',
-        component: __webpack_require__(2)
-    }]);
-});
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
@@ -133,6 +113,32 @@ if (false) {(function () {
 
 module.exports = Component.exports
 
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(2);
+module.exports = __webpack_require__(11);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+Nova.booting(function (Vue, router) {
+    router.addRoutes([{
+        name: 'report',
+        path: '/report',
+        component: __webpack_require__(0),
+        meta: { label: 'Top Categories' }
+    }, {
+        name: 'top',
+        path: '/report',
+        component: __webpack_require__(0),
+        meta: { label: 'Top Categories' }
+    }]);
+});
 
 /***/ }),
 /* 3 */
@@ -689,7 +695,9 @@ var render = function() {
   return _c(
     "div",
     [
-      _c("heading", { staticClass: "mb-6" }, [_vm._v("Report")]),
+      _c("heading", { staticClass: "mb-6" }, [
+        _vm._v(_vm._s(this.$route.meta.label))
+      ]),
       _vm._v(" "),
       _c(
         "card",

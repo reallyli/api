@@ -1,6 +1,6 @@
 <template>
     <div>
-        <heading class="mb-6">Report</heading>
+        <heading class="mb-6">{{this.$route.meta.label}}</heading>
 
         <card class="flex flex-col p-6 justify-center" style="min-height: 300px">
             <table class="table table-striped table-bordered" width="100%">
@@ -24,7 +24,7 @@
 <script>
 export default {
     props: {
-        
+
     },
     data(){
         return {
@@ -41,7 +41,7 @@ export default {
         }
     },
     mounted() {
-        this.getCategories()
+        this.getCategories();
     },
 }
 </script>
