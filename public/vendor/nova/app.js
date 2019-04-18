@@ -10305,7 +10305,7 @@ exports.default = {
 
             return Nova.request().get('/nova-api/' + this.resourceName + '/filters').then(function (response) {
                 _this6.filters = response.data;
-                _this6.initializeFilterValuesFromQueryString();
+                if( _this6.initializeFilterValuesFromQueryString)   _this6.initializeFilterValuesFromQueryString();
             });
         },
 
