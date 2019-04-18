@@ -281,7 +281,6 @@ class BusinessesController extends Controller
             ], 422);
         }
 
-        $totalBusinesses = Business::count();
         $totalReviews = BusinessReview::count();
 
         //$businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
@@ -290,7 +289,6 @@ class BusinessesController extends Controller
         $attributes = $elasticClient->search(AttributesCountRule::buildRule($topLeft, $bottomRight));
 
         return response()->json([
-            'totalBusinesses' => $totalBusinesses,
             'totalImages'     => $totalImages,
             'totalReviews'    => $totalReviews,
             'attributes'      => view('partials.attributes', ['attributes' => $attributes['aggregations']])->render()

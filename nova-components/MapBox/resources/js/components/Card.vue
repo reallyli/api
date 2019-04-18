@@ -7,7 +7,7 @@
                     <td>
                         <b>{{ __("Total businesses:") }}</b>
                     </td>
-                    <td id="totalBusinesses">{{ totalBusinesses }}</td>
+                    <td>{{ totalBusinesses }}</td>
                     <td>
                         <b>{{ __("Total reviews:") }}</b>
                     </td>
@@ -19,25 +19,6 @@
                 </tr>
             </table>
         </div>
-        <button
-            v-if="!isHiddenAttributes"
-            class="show_attributes"
-            v-on:click="isHiddenAttributes = !isHiddenAttributes"
-        >
-            Hide Attributes
-        </button>
-        <button
-            v-else
-            class="show_attributes"
-            v-on:click="isHiddenAttributes = !isHiddenAttributes"
-        >
-            Show Attributes
-        </button>
-        <div
-            v-if="!isHiddenAttributes"
-            id="attributes"
-            v-html="attributes"
-        ></div>
     </card>
 </template>
 
@@ -58,19 +39,19 @@ export default {
     data() {
         return {
             map: null,
+            index: "",
             iControl: 0,
             totalImages: 0,
             attributes: "",
             businesses: "",
             totalReviews: 0,
-            totalBusinesses: 0,
-            isHiddenAttributes: false
+            totalBusinesses: 0
         };
     },
     mounted() {
         this.createMap();
 
-        console.log(Nova.config.userId);
+        this.index = this.getResourceIndex(this.$parent);
     },
     methods: {
         setCookie(name, value, hours = 1) {
@@ -184,7 +165,6 @@ export default {
                     .then(response => {
                         this.totalImages = response.data.totalImages;
                         this.totalReviews = response.data.totalReviews;
-                        this.totalBusinesses = response.data.totalBusinesses;
                         this.attributes = response.data.attributes;
                     });
 
@@ -249,8 +229,6 @@ export default {
                             .then(response => {
                                 this.totalImages = response.data.totalImages;
                                 this.totalReviews = response.data.totalReviews;
-                                this.totalBusinesses =
-                                    response.data.totalBusinesses;
                                 this.attributes = response.data.attributes;
                             });
                         this.updateMap();
@@ -273,8 +251,6 @@ export default {
                             .then(response => {
                                 this.totalImages = response.data.totalImages;
                                 this.totalReviews = response.data.totalReviews;
-                                this.totalBusinesses =
-                                    response.data.totalBusinesses;
                                 this.attributes = response.data.attributes;
                             });
 
@@ -358,6 +334,12 @@ export default {
             this.removeControl().addControl();
 
             this.updateIndexResources();
+
+            // Nova.request()
+            //     .get("/nova-vendor/mapbox/totoal-business")
+            //     .then(({ data }) => {
+            //         console.log(data);
+            //     });
         },
 
         redraw() {
@@ -396,12 +378,15 @@ export default {
         },
 
         updateIndexResources() {
-            let index = this.getResourceIndex(this.$parent);
-
-            if (index) {
+            if (this.index) {
                 // Call the resource updater
-                index.getResources();
-                index.getFilters();
+                this.index.getResources();
+                this.index.getFilters();
+                setTimeout(
+                    () =>
+                        (this.totalBusinesses = this.index.allMatchingResourceCount),
+                    2000
+                );
             }
         }
     }

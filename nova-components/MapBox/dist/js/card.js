@@ -2555,25 +2555,6 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 
 
@@ -2590,19 +2571,19 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
     data: function data() {
         return {
             map: null,
+            index: "",
             iControl: 0,
             totalImages: 0,
             attributes: "",
             businesses: "",
             totalReviews: 0,
-            totalBusinesses: 0,
-            isHiddenAttributes: false
+            totalBusinesses: 0
         };
     },
     mounted: function mounted() {
         this.createMap();
 
-        console.log(Nova.config.userId);
+        this.index = this.getResourceIndex(this.$parent);
     },
 
     methods: {
@@ -2714,7 +2695,6 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                 Nova.request().get(_this2.getStatsUrl()).then(function (response) {
                     _this2.totalImages = response.data.totalImages;
                     _this2.totalReviews = response.data.totalReviews;
-                    _this2.totalBusinesses = response.data.totalBusinesses;
                     _this2.attributes = response.data.attributes;
                 });
 
@@ -2767,7 +2747,6 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                     Nova.request().get(this.getStatsUrl()).then(function (response) {
                         _this3.totalImages = response.data.totalImages;
                         _this3.totalReviews = response.data.totalReviews;
-                        _this3.totalBusinesses = response.data.totalBusinesses;
                         _this3.attributes = response.data.attributes;
                     });
                     this.updateMap();
@@ -2784,7 +2763,6 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                     Nova.request().get(this.getStatsUrl()).then(function (response) {
                         _this4.totalImages = response.data.totalImages;
                         _this4.totalReviews = response.data.totalReviews;
-                        _this4.totalBusinesses = response.data.totalBusinesses;
                         _this4.attributes = response.data.attributes;
                     });
 
@@ -2847,6 +2825,12 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             this.removeControl().addControl();
 
             this.updateIndexResources();
+
+            // Nova.request()
+            //     .get("/nova-vendor/mapbox/totoal-business")
+            //     .then(({ data }) => {
+            //         console.log(data);
+            //     });
         },
         redraw: function redraw() {
             this.map.getSource("places").setData(this.getGeoJsonUrl());
@@ -2876,12 +2860,15 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             return typeof parent === "undefined" ? null : this.getResourceIndex(parent.$parent);
         },
         updateIndexResources: function updateIndexResources() {
-            var index = this.getResourceIndex(this.$parent);
+            var _this5 = this;
 
-            if (index) {
+            if (this.index) {
                 // Call the resource updater
-                index.getResources();
-                index.getFilters();
+                this.index.getResources();
+                this.index.getFilters();
+                setTimeout(function () {
+                    return _this5.totalBusinesses = _this5.index.allMatchingResourceCount;
+                }, 2000);
             }
         }
     }
@@ -10769,9 +10756,7 @@ var render = function() {
           _c("tr", [
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total businesses:")))])]),
             _vm._v(" "),
-            _c("td", { attrs: { id: "totalBusinesses" } }, [
-              _vm._v(_vm._s(_vm.totalBusinesses))
-            ]),
+            _c("td", [_vm._v(_vm._s(_vm.totalBusinesses))]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total reviews:")))])]),
             _vm._v(" "),
@@ -10786,40 +10771,7 @@ var render = function() {
             ])
           ])
         ])
-      ]),
-      _vm._v(" "),
-      !_vm.isHiddenAttributes
-        ? _c(
-            "button",
-            {
-              staticClass: "show_attributes",
-              on: {
-                click: function($event) {
-                  _vm.isHiddenAttributes = !_vm.isHiddenAttributes
-                }
-              }
-            },
-            [_vm._v("\n        Hide Attributes\n    ")]
-          )
-        : _c(
-            "button",
-            {
-              staticClass: "show_attributes",
-              on: {
-                click: function($event) {
-                  _vm.isHiddenAttributes = !_vm.isHiddenAttributes
-                }
-              }
-            },
-            [_vm._v("\n        Show Attributes\n    ")]
-          ),
-      _vm._v(" "),
-      !_vm.isHiddenAttributes
-        ? _c("div", {
-            attrs: { id: "attributes" },
-            domProps: { innerHTML: _vm._s(_vm.attributes) }
-          })
-        : _vm._e()
+      ])
     ]
   )
 }
