@@ -2,29 +2,23 @@
 
 namespace Tests\Feature\API;
 
-use Artisan;
 use Tests\TestCase;
 use App\Models\User;
 use App\Events\EmailVerified;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Event;
+use App\Http\Middleware\ValidateSignature;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Notification;
+use App\Exceptions\ExpiredSignatureException;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Routing\Middleware\ValidateSignature;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
-class VerificationTest extends TestCase
+class VerificationEmailTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function setUp()
-    {
-        parent::setUp();
-        Artisan::call('passport:install');
-    }
 
     /** @test */
     public function send_verification_email()
@@ -53,39 +47,45 @@ class VerificationTest extends TestCase
     {
         $this->expectException(InvalidSignatureException::class);
         
-        $this->get(route('verification.email', ['id' => 1, 'signature' => 'invalid']));
+        $this->get(route('verification.email', ['id' => 1, 'signature' => 'invalid', 'expires' => now()->getTimestamp()]));
+    }
+    
+    /** @test */
+    public function signed_middleware_with_expired_signature_fails()
+    {
+        $this->expectException(ExpiredSignatureException::class);
+        
+        $this->get(route('verification.email', ['id' => 1, 'signature' => 'valid', 'expires' => now()->subSeconds(1)->getTimestamp()]));
+    }
+    
+    /** @test */
+    public function unauthenticated_email_verification_fails()
+    {
+        $this->withoutMiddleware(ValidateSignature::class)
+            ->expectException(AuthenticationException::class);
+        
+        $this->get(route('verification.email', ['id' => 1, 'signature' => 'valid']));
     }
     
     /** @test */
     public function unauthorized_email_verification_fails()
     {
-        $this->withoutMiddleware(ValidateSignature::class);
+        $this->withoutMiddleware(ValidateSignature::class)
+            ->expectException(AuthorizationException::class);
         
-        $this->expectException(AuthenticationException::class);
-        
-        $this->get(route('verification.email', ['id' => 1, 'signature' => 'invalid']));
-    }
-    
-    /** @test */
-    public function verify_method_fails_when_a_different_user_verifies()
-    {
-        $this->withoutMiddleware(ValidateSignature::class);
-        
-        $this->expectException(AuthorizationException::class);
-
         $this->passportActingAs();
 
-        $this->get(route('verification.email', ['id' => 2, 'signature' => '1']));
+        $this->get(route('verification.email', ['id' => 2, 'signature' => 'valid']));
     }
 
     /** @test */
-    public function verify_method_returns_a_message_when_email_has_been_already_verified()
+    public function verify_method_returns_a_message_if_email_has_been_already_verified()
     {
         $this->withoutMiddleware(ValidateSignature::class);
         
         $this->passportActingAs(now());
 
-        $this->getJson(route('verification.email', ['id' => 1, 'signature' => '1']))
+        $this->getJson(route('verification.email', ['id' => 1, 'signature' => 'valid']))
             ->assertJson([
                 'verification' => 'Email has been already verified.'
             ]);
@@ -99,9 +99,10 @@ class VerificationTest extends TestCase
         $this->withoutMiddleware(ValidateSignature::class);
 
         $user = $this->passportActingAs();
+
         $this->assertNull($user->fresh()->email_verified_at);
         
-        $this->getJson(route('verification.email', ['id' => 1, 'signature' => '1']))
+        $this->getJson(route('verification.email', ['id' => 1, 'signature' => 'valid']))
             ->assertJson([
                 'verification' => true
             ]);
