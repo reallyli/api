@@ -16,6 +16,7 @@ yarn-error.log
 .phpunit.result.cache
 google-application-credentials.json
 composer.lock
+yarn.lock
 
 Dockerfile
 build-deploy/first-run.sh

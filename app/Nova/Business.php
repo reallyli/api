@@ -165,7 +165,8 @@ class Business extends Resource
 //                    ->hideWhenCreating()
 //                    ->hideWhenUpdating(),
 //            ]),
-            HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
+            //HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
+            HasMany::make('Business Working Hours', 'working_hours'),
             HasMany::make('Reviews', 'reviews', BusinessReview::class),
             BelongsToMany::make('Business Attributes', 'optionalAttributes', OptionalAttribute::class)
                 ->fields(function () {
