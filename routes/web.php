@@ -15,8 +15,4 @@ use App\Notifications\VerifyEmailNotification;
 */
 
 // Todo:: Properly solve this.
-Auth::routes(['verify' => true]);
-
-Route::get('/haha', function () {
-    User::first()->notify(new VerifyEmailNotification);
-});
+Auth::routes();

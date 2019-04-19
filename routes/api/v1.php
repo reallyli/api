@@ -38,6 +38,7 @@ Route::post('/login', 'Authentication\LoginController@store');
 Route::post('/register', 'Authentication\RegistrationController@create');
 
 Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email');
+Route::get('/email/resend', 'Authentication\VerificationController@resend')->name('verification.resend');
 
 //use Illuminate\Http\Request;
 //
