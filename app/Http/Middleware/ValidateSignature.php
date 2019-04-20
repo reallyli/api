@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use App\Exceptions\ExpiredSignatureException;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
 class ValidateSignature
 {
@@ -17,12 +17,13 @@ class ValidateSignature
      */
     public function handle($request, Closure $next)
     {
+        // It checks expiration, too
         if ($request->hasValidSignature()) {
             return $next($request);
         }
 
         if (now()->getTimestamp() > $request->expires) {
-            throw new ExpiredSignatureException;
+            throw new ExpiredSignatureException('Email has been expired.');
         }
 
         throw new InvalidSignatureException;

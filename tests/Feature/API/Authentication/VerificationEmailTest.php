@@ -32,8 +32,6 @@ class VerificationEmailTest extends TestCase
             'verified'=> false,
         ]);
     
-        unset($user['phone_number']);
-    
         $this->json('POST', '/api/v1/register', $user->toArray());
     
         Notification::assertSentTo(
@@ -47,15 +45,16 @@ class VerificationEmailTest extends TestCase
     {
         $this->expectException(InvalidSignatureException::class);
         
-        $this->get(route('verification.email', ['id' => 1, 'signature' => 'invalid', 'expires' => now()->getTimestamp()]));
+        $this->hit('get', 1, 'invalid', 1);
     }
+    
     
     /** @test */
     public function signed_middleware_with_expired_signature_fails()
     {
         $this->expectException(ExpiredSignatureException::class);
         
-        $this->get(route('verification.email', ['id' => 1, 'signature' => 'valid', 'expires' => now()->subSeconds(1)->getTimestamp()]));
+        $this->hit('get', 1, 'valid', -1);
     }
     
     /** @test */
@@ -63,10 +62,10 @@ class VerificationEmailTest extends TestCase
     {
         $this->withoutMiddleware(ValidateSignature::class)
             ->expectException(AuthenticationException::class);
-        
-        $this->get(route('verification.email', ['id' => 1, 'signature' => 'valid']));
+            
+        $this->hit('get', 1, 'valid', 1);
     }
-    
+        
     /** @test */
     public function unauthorized_email_verification_fails()
     {
@@ -74,23 +73,23 @@ class VerificationEmailTest extends TestCase
             ->expectException(AuthorizationException::class);
         
         $this->passportActingAs();
-
-        $this->get(route('verification.email', ['id' => 2, 'signature' => 'valid']));
+        
+        $this->hit('get', 2, 'valid', 1);
     }
-
+    
     /** @test */
-    public function verify_method_returns_a_message_if_email_has_been_already_verified()
+    public function its_returns_a_message_if_email_has_been_already_verified()
     {
         $this->withoutMiddleware(ValidateSignature::class);
         
         $this->passportActingAs(now());
-
-        $this->getJson(route('verification.email', ['id' => 1, 'signature' => 'valid']))
+        
+        $this->hit('getJson', 1, 'valid', 1)
             ->assertJson([
                 'verification' => 'Email has been already verified.'
             ]);
     }
-
+    
     /** @test */
     public function email_verified()
     {
@@ -100,9 +99,9 @@ class VerificationEmailTest extends TestCase
 
         $user = $this->passportActingAs();
 
-        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertNull($user->email_verified_at);
         
-        $this->getJson(route('verification.email', ['id' => 1, 'signature' => 'valid']))
+        $this->hit('getJson', 1, 'valid', 1)
             ->assertJson([
                 'verification' => true
             ]);
@@ -120,6 +119,15 @@ class VerificationEmailTest extends TestCase
         return Passport::actingAs(factory(User::class)->create([
             'email_verified_at' => $emailVerifiedAt,
             'verified'=> false,
+        ]));
+    }
+
+    public function hit($method, $id, $signature, $expires)
+    {
+        return $this->{$method}(route('verification.email', [
+                'id' => $id,
+                'signature' => $signature,
+                'expires'=> now()->addMinute($expires)->getTimestamp()
             ]));
     }
 }

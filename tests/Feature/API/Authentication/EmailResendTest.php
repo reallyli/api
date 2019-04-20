@@ -3,25 +3,24 @@
 namespace Tests\Feature\API\Authentication;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Passport\Passport;
 use App\Models\User;
+use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\VerifyEmailNotification;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class ResendTest extends TestCase
+class EmailResendTest extends TestCase
 {
     use RefreshDatabase;
     
     /** @test */
-    public function resend_method_returns_a_message_if_email_has_been_already_verified()
+    public function it_returns_a_message_if_email_has_been_already_verified()
     {
         $this->passportActingAs(now());
 
-        $result = $this->getJson(route('verification.resend'))->json();
+        $result = $this->getJson(route('verification.email.resend'))->json();
         
-        $this->assertEquals('User already have verified email.', $result);
+        $this->assertEquals('User has already verified email.', $result);
     }
     
     /** @test */
@@ -31,14 +30,14 @@ class ResendTest extends TestCase
     
         Notification::assertNothingSent();
     
-        $this->passportActingAs();
+        $user = $this->passportActingAs();
         
-        $result = $this->getJson(route('verification.resend'))->json();
+        $result = $this->getJson(route('verification.email.resend'))->json();
         
         $this->assertEquals('Email has been reseneded.', $result);
 
         Notification::assertSentTo(
-            User::first(),
+            $user,
             VerifyEmailNotification::class
         );
     }
