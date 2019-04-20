@@ -382,12 +382,9 @@ class Business extends Model
      */
     public function reviews()
     {
-        return
-        $this
-            ->hasMany(BusinessReview::class)
-            ->select(['*', DB::raw("IF(`comment` > '', 1, 0) `order`")])
-            ->orderBy('order', 'DESC')
-            ->orderBy('created_at', 'DESC');
+        return $this->hasMany(BusinessReview::class)
+                ->whereNotNull('comment')
+                ->latest();
     }
 
     public function getReviewsCountAttribute($count)

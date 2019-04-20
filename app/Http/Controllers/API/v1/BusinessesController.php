@@ -54,16 +54,37 @@ class BusinessesController extends Controller
             'location',
             ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
         )], 3);
- 
-        $businessCount = $builder->count();
+
+        $clone = clone $builder;
+        
+        $total = $clone->count();
+
+        $from = 0;
+        $take = 1000; // needs to be optimized.
+        $reviews = 0;
+        $posts = 0;
+
+        while ($total > 0) {
+            $businesses = $clone->with(['reviews', 'posts'])->from($from)->take($take)->get();
+
+            foreach ($businesses as $business) {
+                $reviews += $business->reviews->count();
+                $posts += $business->posts->count();
+            }
+
+            $from += $take;
+            $total -= $take;
+        }
 
         // 3min Lavavel 5.7
-        cache(['business_count'.request('id') => $businessCount], 3);
+        cache(['review_count'.request('id') => $reviews], 3);
+        cache(['post_count'.request('id') => $posts], 3);
+        cache(['business_count'.request('id') => $builder->count()], 3);
 
         $data['type'] = 'FeatureCollection';
         $data['features'] = [];
 
-        $businesses = $builder->take(Business::LIMIT)->get();
+        $businesses = $builder->from(0)->take(Business::LIMIT)->get();
 
         foreach ($businesses as $business) {
             $feature['type'] = 'Feature';
@@ -234,67 +255,7 @@ class BusinessesController extends Controller
         
         return response()->json($result);
     }
-
-    /**
-     *  @OA\Get(
-     *     path="/api/v1/businesses/stats",
-     *     summary="Get business stats",
-     *     @OA\Parameter(
-     *         name="top_left",
-     *         in="query",
-     *         description="Top Left of location (GPS)",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="float"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="bottom_right",
-     *         in="query",
-     *         description="Bottom right of location (GPS)",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="float"
-     *         )
-     *     ),
-     *     @OA\Response(response="200", description="Stats data"),
-     *  )
-     * @param Request $request
-     * @param Client $elasticClient
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Illuminate\Validation\ValidationException
-     * @throws \Throwable
-     */
-    public function stats(Request $request, Client $elasticClient)
-    {
-        ['top_left' => $topLeft, 'bottom_right' => $bottomRight] =
-            $this->validate($request, [
-                'top_left'     => ['required', new LatLng],
-                'bottom_right' => ['required', new LatLng]
-            ]);
-
-        // TODO: should there be a similar check for lng values?
-        // TODO: what happens (in extreme case) when search box is around where the Equator crosses the International Date Line?
-        if ($topLeft['lat'] <= $bottomRight['lat']) {
-            return response()->json([
-                'message' => 'The given data is invalid'
-            ], 422);
-        }
-
-        $totalReviews = BusinessReview::count();
-
-        //$businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
-        $totalImages = 0;//count($businessReviewImages);
-
-        $attributes = $elasticClient->search(AttributesCountRule::buildRule($topLeft, $bottomRight));
-
-        return response()->json([
-            'totalImages'     => $totalImages,
-            'totalReviews'    => $totalReviews,
-            'attributes'      => view('partials.attributes', ['attributes' => $attributes['aggregations']])->render()
-        ]);
-    }
-
+ 
     /**
      *  @OA\Get(
      *     path="/api/v1/businesses/{id}",
