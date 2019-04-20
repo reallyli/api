@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API\v1\Authentication;
 
 use Illuminate\Http\Request;
 use App\Events\EmailVerified;
-use Illuminate\Support\Facades\Hash;
+use App\Events\SmsCodeVerified;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -99,20 +99,37 @@ class VerificationController extends Controller
      * @return \Illuminate\Http\Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function verifySMS(Request $request)
+    public function verifySms(Request $request)
     {
-        if (Hash::check($request->verification_code, $request->user()->verification_code)) {
-            $request->user()->update([
-                'verified' => true
-            ]);
+        if ($request->route('id') != $request->user()->getKey()) {
+            throw new AuthorizationException;
+        }
 
+        if ($request->user()->hasVerifiedCode()) {
             return response()->json([
-                'verification' => true
+                'verification' => 'Verification code has been already verified.'
             ]);
         }
 
-        return response()->json([
-            'verification' => false
-        ]);
+        if ($request->verification_code != $request->user()->verification_code) {
+            return response()->json(['verification' => 'Wrong verification code.']);
+        }
+
+        event(new SmsCodeVerified($request->user()));
+
+        $request->user()->update(['verified' => true]);
+    
+        return response()->json(['verification' => true]);
+    }
+
+    public function resendSms(Request $request)
+    {
+        if ($request->user()->hasVerifiedCode()) {
+            return response()->json('User has already verified sms.', 422);
+        }
+
+        $request->user()->sendVerification();
+
+        return response()->json('Sms has been reseneded.');
     }
 }

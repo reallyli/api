@@ -38,16 +38,11 @@ Route::post('/login', 'Authentication\LoginController@store');
 Route::post('/register', 'Authentication\RegistrationController@create');
 
 Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email');
-Route::get('/email/resend', 'Authentication\VerificationController@resend')->name('verification.resend');
+Route::get('/email/resend', 'Authentication\VerificationController@resend')->name('verification.email.resend');
 
-//use Illuminate\Http\Request;
-//
-//Route::get('/email/verify/{id}', function(Request $request) {
-//    return $request;
-//})->name('verification.email')->middleware('signed');
-
-
-Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->name('verification.sms');
+Route::post('/sms/verify/{id}', 'Authentication\VerificationController@verifySms')->name('verification.sms');
+Route::get('/sms/resend', 'Authentication\VerificationController@resendSms')->name('verification.sms.resend');
+    
 
 /**
  *  Business

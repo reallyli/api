@@ -41,7 +41,6 @@ class EmailResendTest extends TestCase
             VerifyEmailNotification::class
         );
     }
-    
         
     public function passportActingAs($emailVerifiedAt = null)
     {
