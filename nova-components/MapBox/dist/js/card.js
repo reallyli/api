@@ -2529,8 +2529,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__node_modules_mapbox_gl_dist_mapbox_gl_css__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__node_modules_mapbox_mapbox_gl_geocoder_dist_mapbox_gl_geocoder_css__);
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 //
 //
 //
@@ -2573,9 +2571,9 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             map: null,
             index: "",
             iControl: 0,
-            totalImages: 0,
             attributes: "",
             businesses: "",
+            totalImages: 0,
             totalReviews: 0,
             totalBusinesses: 0
         };
@@ -2608,66 +2606,8 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
             return JSON.parse(this.getCookie("map_position"));
         },
-        applyFilters: function applyFilters() {
-            var _this = this;
-
-            var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-                useCoords = _ref.useCoords;
-
-            var getBounds = function getBounds() {
-                var topLeftLat = _this.map.getBounds().getNorthWest().lat,
-                    topLeftLng = _this.map.getBounds().getNorthWest().lng,
-                    bottomRightLat = _this.map.getBounds().getSouthEast().lat,
-                    bottomRightLng = _this.map.getBounds().getSouthEast().lng;
-
-                if (topLeftLat > 90) {
-                    topLeftLat = 90;
-                }
-                if (topLeftLat < -90) {
-                    topLeftLat = -90;
-                }
-                if (topLeftLng > 180) {
-                    topLeftLng = 180;
-                }
-                if (topLeftLng < -180) {
-                    topLeftLng = -180;
-                }
-                if (bottomRightLat > 90) {
-                    bottomRightLat = 90;
-                }
-                if (bottomRightLat < -90) {
-                    bottomRightLat = -90;
-                }
-                if (bottomRightLng > 180) {
-                    bottomRightLng = 180;
-                }
-                if (bottomRightLng < -180) {
-                    bottomRightLng = -180;
-                }
-
-                return {
-                    "top_left[lat]": topLeftLat,
-                    "top_left[lng]": topLeftLng,
-                    "bottom_right[lat]": bottomRightLat,
-                    "bottom_right[lng]": bottomRightLng
-                };
-            };
-
-            var opts = _extends({}, this.$route.query);
-
-            if (useCoords) {
-                Object.assign(opts, getBounds());
-            }
-
-            return __WEBPACK_IMPORTED_MODULE_3_query_string___default.a.stringify(opts);
-        },
         getGeoJsonUrl: function getGeoJsonUrl() {
             return "/api/v1/businesses/geo-json?bounds=" + this.map.getBounds().toArray() + "&center=" + this.map.getCenter().toArray() + "&id=" + Nova.config.userId;
-        },
-        getStatsUrl: function getStatsUrl() {
-            return "/api/v1/businesses/stats?" + this.applyFilters({
-                useCoords: true
-            });
         },
         createMap: function createMap() {
             __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.accessToken = API_KEY;
@@ -2680,24 +2620,16 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                 zoom: this.getCenter().zoom
             });
 
-            console.log(this.getStatsUrl());
-
             this.addClusters();
         },
         addClusters: function addClusters() {
-            var _this2 = this;
+            var _this = this;
 
             this.addControl();
 
             var map = this.map;
             map.addControl(new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.NavigationControl());
             map.on("load", function () {
-                Nova.request().get(_this2.getStatsUrl()).then(function (response) {
-                    _this2.totalImages = response.data.totalImages;
-                    _this2.totalReviews = response.data.totalReviews;
-                    _this2.attributes = response.data.attributes;
-                });
-
                 map.on("click", "clusters", function (e) {
                     var features = map.queryRenderedFeatures(e.point, {
                         layers: ["clusters"]
@@ -2736,42 +2668,27 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                     new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Popup().setLngLat(coordinates).setHTML(description).addTo(map);
                 });
 
-                map.on("zoomend", function () {
-                    var _this3 = this;
-
-                    this.setCookie("map_position", JSON.stringify({
+                map.on("zoomend", _.debounce(function () {
+                    _this.setCookie("map_position", JSON.stringify({
                         zoom: map.getZoom(),
                         center: map.getCenter()
                     }));
 
-                    Nova.request().get(this.getStatsUrl()).then(function (response) {
-                        _this3.totalImages = response.data.totalImages;
-                        _this3.totalReviews = response.data.totalReviews;
-                        _this3.attributes = response.data.attributes;
-                    });
-                    this.updateMap();
-                }.bind(_this2));
+                    _this.updateMap();
+                }, 500));
 
-                map.on("dragend", function () {
-                    var _this4 = this;
-
-                    this.setCookie("map_position", JSON.stringify({
+                map.on("dragend", _.debounce(function () {
+                    _this.setCookie("map_position", JSON.stringify({
                         zoom: map.getZoom(),
                         center: map.getCenter()
                     }));
 
-                    Nova.request().get(this.getStatsUrl()).then(function (response) {
-                        _this4.totalImages = response.data.totalImages;
-                        _this4.totalReviews = response.data.totalReviews;
-                        _this4.attributes = response.data.attributes;
-                    });
-
-                    this.updateMap();
-                }.bind(_this2));
+                    _this.updateMap();
+                }, 500));
 
                 map.addSource("places", {
                     type: "geojson",
-                    data: _this2.getGeoJsonUrl(),
+                    data: _this.getGeoJsonUrl(),
                     cluster: true,
                     clusterMaxZoom: 14,
                     clusterRadius: 50
@@ -2815,7 +2732,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
                 // resource table is updated earlier than map
                 // Once map is rendered, we need to update the table.
-                _this2.updateIndexResources();
+                _this.updateIndexResources();
             });
         },
         updateMap: function updateMap() {
@@ -2824,13 +2741,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             // set search bounds
             this.removeControl().addControl();
 
-            this.updateIndexResources();
-
-            // Nova.request()
-            //     .get("/nova-vendor/mapbox/totoal-business")
-            //     .then(({ data }) => {
-            //         console.log(data);
-            //     });
+            setTimeout(this.updateIndexResources, 1500);
         },
         redraw: function redraw() {
             this.map.getSource("places").setData(this.getGeoJsonUrl());
@@ -2860,14 +2771,21 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             return typeof parent === "undefined" ? null : this.getResourceIndex(parent.$parent);
         },
         updateIndexResources: function updateIndexResources() {
-            var _this5 = this;
-
             // Call the resource updater
             this.index.getResources();
             this.index.getFilters();
-            setTimeout(function () {
-                return _this5.totalBusinesses = _this5.index.allMatchingResourceCount;
-            }, 2000);
+            this.updateTotals();
+        },
+        updateTotals: function updateTotals() {
+            var _this2 = this;
+
+            Nova.request().get("/nova-vendor/mapbox/business-totals").then(function (_ref) {
+                var data = _ref.data;
+
+                _this2.totalBusinesses = data.totalBusinesses;
+                _this2.totalReviews = data.totalReviews;
+                _this2.totalImages = data.totalImages;
+            });
         }
     }
 });
@@ -10754,11 +10672,13 @@ var render = function() {
           _c("tr", [
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total businesses:")))])]),
             _vm._v(" "),
-            _c("td", [_vm._v(_vm._s(_vm.totalBusinesses))]),
+            _c("td", { staticClass: "pr-2" }, [
+              _vm._v(_vm._s(_vm.totalBusinesses))
+            ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total reviews:")))])]),
             _vm._v(" "),
-            _c("td", { attrs: { id: "totalReviews" } }, [
+            _c("td", { staticClass: "pr-2", attrs: { id: "totalReviews" } }, [
               _vm._v(_vm._s(_vm.totalReviews))
             ]),
             _vm._v(" "),

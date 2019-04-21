@@ -8,22 +8,20 @@ class BusinessSeeder extends Seeder
 {
     public function run()
     {
-        // DB::table('businesses')->truncate();
-        // DB::table('categories')->truncate();
-        // DB::table('business_category')->truncate();
-
-        $start = microtime(true);
-
         $faker = Factory::create();
 
         $position = 1;
 
-        for ($i = 1; $i <= 50; $i++) {
+        $bar = $this->command->getOutput()->createProgressBar(2000);
+
+        $bar->start();
+
+        for ($i = 1; $i <= 2000; $i++) {
             $businesses = [];
             $categories = [];
             $business_category = [];
 
-            for ($j = 0; $j < 1000; $j++) {
+            for ($j = 0; $j < 100; $j++) {
                 $businesses[] = [
                     'id' => $position,
                     'name' => 'business_name'.$position,
@@ -36,10 +34,21 @@ class BusinessSeeder extends Seeder
                     'category_id' => $i,
                     'relevance' => 1,
                 ];
+
+                $review[] = [
+                    'business_id' => $position,
+                    'user_id' => 1,
+                    'score' => 1,
+                ];
+                
+                $post[] = [
+                    'business_id' => $position,
+                    'user_id' => 1,
+                ];
                 
                 $position++;
             }
-            
+
             $categories[] = [
                 'id' => $i,
                 'uuid' => 'category_uuid'.$i,
@@ -48,9 +57,13 @@ class BusinessSeeder extends Seeder
 
             DB::table('businesses')->insert($businesses);
             DB::table('categories')->insert($categories);
+            DB::table('business_reviews')->insert($review);
+            DB::table('business_posts')->insert($post);
             DB::table('business_category')->insert($business_category);
+
+            $bar->advance();
         }
 
-        $this->command->info(microtime(true) - $start);
+        $bar->finish();
     }
 }
