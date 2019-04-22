@@ -19,6 +19,8 @@ class BusinessSeeder extends Seeder
         for ($i = 1; $i <= 2000; $i++) {
             $businesses = [];
             $categories = [];
+            $review = [];
+            $post = [];
             $business_category = [];
 
             for ($j = 0; $j < 100; $j++) {
@@ -35,19 +37,19 @@ class BusinessSeeder extends Seeder
                     'relevance' => 1,
                 ];
 
-                $review[] = [
-                    'business_id' => $position,
-                    'user_id' => 1,
-                    'score' => 1,
-                ];
-                
-                $post[] = [
-                    'business_id' => $position,
-                    'user_id' => 1,
-                ];
-                
                 $position++;
             }
+
+            $review[] = [
+                'business_id' => $i,
+                'user_id' => 1,
+                'score' => 1,
+            ];
+            
+            $post[] = [
+                'business_id' => $i,
+                'user_id' => 1,
+            ];
 
             $categories[] = [
                 'id' => $i,

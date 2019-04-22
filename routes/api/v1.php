@@ -51,7 +51,6 @@ Route::get('/sms/resend', 'Authentication\VerificationController@resendSms')->na
     Route::get('/businesses/geo-json', 'BusinessesController@geoJson');
     Route::get('/businesses/geo-json/{business_id}', 'BusinessesController@geoJsonByBisinessID');
     
-    Route::get('/businesses/stats', 'BusinessesController@stats');
     Route::get('/categories/business-stats', 'CategoriesController@businessStats');
     Route::get('/reviews-datatable/{business_id}', 'BusinessesController@getReviewsDatatable');
     Route::get('/post-images-datatable/{business_id}', 'BusinessesController@getPostImagesDatatable');

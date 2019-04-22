@@ -2741,7 +2741,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             // set search bounds
             this.removeControl().addControl();
 
-            setTimeout(this.updateIndexResources, 1500);
+            setTimeout(this.updateIndexResources, 2000);
         },
         redraw: function redraw() {
             this.map.getSource("places").setData(this.getGeoJsonUrl());
