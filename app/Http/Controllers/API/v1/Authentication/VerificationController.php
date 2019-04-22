@@ -56,7 +56,14 @@ class VerificationController extends Controller
     }
 
     /**
-     * Resend the email verification notification.
+     * @OA\Get(
+     *     path="/api/v1/email/resend",
+     *     summary="Resend email verification.",
+     *     @OA\Response(
+     *      response="200",
+     *      description="Email has been reseneded"
+     *  )
+     * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -74,7 +81,7 @@ class VerificationController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/sms/verify",
+     *     path="/api/v1/sms/verify/{id}",
      *     summary="Post a 5 digit verification PIN, Headers MUST contain the authorization bearer token.",
      *     @OA\RequestBody(
      *         @OA\MediaType(
@@ -122,6 +129,19 @@ class VerificationController extends Controller
         return response()->json(['verification' => true]);
     }
 
+    /**
+    * @OA\Get(
+    *     path="/api/v1/sms/resend",
+    *     summary="Resend sms verification.",
+    *     @OA\Response(
+    *      response="200",
+    *      description="Sms has been reseneded"
+    *  )
+    * )
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @return \Illuminate\Http\Response
+    */
     public function resendSms(Request $request)
     {
         if ($request->user()->hasVerifiedCode()) {

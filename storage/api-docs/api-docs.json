@@ -117,7 +117,18 @@
                 }
             }
         },
-        "/api/v1/sms/verify": {
+        "/api/v1/email/resend": {
+            "get": {
+                "summary": "Resend email verification.",
+                "operationId": "App\\Http\\Controllers\\API\\v1\\Authentication\\VerificationController::resend",
+                "responses": {
+                    "200": {
+                        "description": "Email has been reseneded"
+                    }
+                }
+            }
+        },
+        "/api/v1/sms/verify/{id}": {
             "post": {
                 "summary": "Post a 5 digit verification PIN, Headers MUST contain the authorization bearer token.",
                 "operationId": "App\\Http\\Controllers\\API\\v1\\Authentication\\VerificationController::verifySms",
@@ -141,6 +152,17 @@
                 "responses": {
                     "200": {
                         "description": "'verification': true"
+                    }
+                }
+            }
+        },
+        "/api/v1/sms/resend": {
+            "get": {
+                "summary": "Resend sms verification.",
+                "operationId": "App\\Http\\Controllers\\API\\v1\\Authentication\\VerificationController::resendSms",
+                "responses": {
+                    "200": {
+                        "description": "Sms has been reseneded"
                     }
                 }
             }
