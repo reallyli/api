@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers\API\v1;
 
-use App\Rules\LatLng;
 use App\Models\Business;
-use App\Models\BusinessReview;
-use Elasticsearch\Client;
 use Illuminate\Http\Request;
+use App\Models\BusinessReview;
 use App\Http\Controllers\Controller;
 use App\Services\Api\BusinessService;
-use App\Elastic\Rules\AggregationRule;
-use App\Http\Resources\BusinessResource;
-use App\Elastic\Rules\AttributesCountRule;
-use App\Http\Requests\Api\Businesses\BookmarkBusiness;
-use App\Http\Requests\Api\Businesses\StoreBusiness;
-use App\Http\Requests\Api\Businesses\UpdateBusiness;
-use Elasticsearch\ClientBuilder;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\BusinessResource;
+use App\Http\Requests\Api\Businesses\UpdateBusiness;
+use App\Http\Requests\Api\Businesses\StoreBusiness;
+use App\Http\Requests\Api\Businesses\BookmarkBusiness;
+use App\Models\BusinessPost;
+use Zttp\Zttp;
+use Elasticsearch\ClientBuilder;
 
 class BusinessesController extends Controller
 {
@@ -42,57 +40,62 @@ class BusinessesController extends Controller
      *  )
      * @return mixed
      */
-    public function geoJson()
+    public function geoJson(Request $request)
     {
-        // 3min Lavavel 5.7
-        cache(['bounds'.request('id') => $bounds = request('bounds')], 3);
-        
-        [$left, $bottom, $right, $top] = explode(',', $bounds);
-        
-        // 3min Lavavel 5.7
-        cache(['business_builder'.request('id') => $builder = Business::search('*')->whereGeoBoundingBox(
-            'location',
-            ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
-        )], 3);
+        [$left, $bottom, $right, $top] = explode(',', $request->bounds);
 
-        $clone = clone $builder;
-        
-        $total = $clone->count();
-
-        $from = 0;
-        $take = 1000; // needs to be optimized.
-        $reviews = 0;
-        $posts = 0;
-
-        while ($total > 0) {
-            $businesses = $clone->with(['reviews', 'posts'])->from($from)->take($take)->get();
-
-            foreach ($businesses as $business) {
-                $reviews += $business->reviews->count();
-                $posts += $business->posts->count();
-            }
-
-            $from += $take;
-            $total -= $take;
-        }
-
-        // 3min Lavavel 5.7
-        cache(['review_count'.request('id') => $reviews], 3);
-        cache(['post_count'.request('id') => $posts], 3);
-        cache(['business_count'.request('id') => $builder->count()], 3);
+        $businesses = ClientBuilder::create()
+            ->setHosts(config('scout_elastic.client.hosts'))
+            ->build()->search([
+                'index' => 'business',
+                'type' => 'businesses',
+                'body' => [
+                    'from' => 0,
+                    'size' => Business::LIMIT,
+                    'query' => [
+                        'bool' => [
+                            'filter' => [
+                                'geo_bounding_box' => [
+                                    'location' => [
+                                        'top_left' => [
+                                            'lat' => (float)$top,
+                                            'lon' => (float)$left,
+                                        ],
+                                        "bottom_right" => [
+                                            'lat' => (float)$bottom,
+                                            'lon' => (float)$right,
+                                        ],
+                                    ],
+                                    'type' => 'indexed',
+                                ],
+                            ]
+                        ]
+                    ]
+                ],
+            ]);
 
         $data['type'] = 'FeatureCollection';
-        $data['features'] = [];
-
-        $businesses = $builder->from(0)->take(Business::LIMIT)->get();
-
-        foreach ($businesses as $business) {
-            $feature['type'] = 'Feature';
-            $feature['geometry']['type'] = 'Point';
-            $feature['geometry']['coordinates'] = [$business->lng, $business->lat];
-            $feature['properties']['name'] ="<a href=\"/dashboard/resources/businesses/{$business->id}\">{$business->name}</a>";
-            $data['features'][] = $feature;
-        }
+        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) {
+            // 3min Lavavel 5.7
+            cache(['business_builder'.request('id') => $businesses], 3);
+            cache(['business_count'.request('id') => $businesses->count()], 3);
+            cache(['business_ids'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
+            cache(['review_count'.request('id') => $businesses->sum('_source.total_reviews')], 3);
+            cache(['post_count'.request('id') => $businesses->sum('_source.total_posts')], 3);
+            cache(['categories'.request('id') => $businesses->sum('_source.total_posts')], 3);
+        })->map(function ($business) {
+            $business = $business['_source'];
+            return [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [$business['location']['lon'], $business['location']['lat']],
+                ],
+                'properties' => [
+                    'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
+                ],
+            ];
+        });
 
         return response()->json($data);
     }

@@ -21,8 +21,7 @@ class BusinessCategory extends Filter
         return $query
             ->select('businesses.*')
             ->join('business_category', 'businesses.id', '=', 'business_category.business_id')
-            ->join('categories', 'business_category.category_id', '=', 'categories.id')
-            ->where('categories.name', $value);
+            ->where('business_category.category_id', $value);
     }
 
     /**
@@ -35,26 +34,25 @@ class BusinessCategory extends Filter
     {
         $categories = [];
 
-        if (cache('business_builder'.auth()->id())) {
+        if ($businesses = cache('business_builder'.auth()->id())) {
             // a
             // a-a
             // a-a-a
-            cache('business_builder'.auth()->id())
-                ->with('categories')->get()
-                ->flatMap->categories->pluck('name')->map(function ($category) {
-                    return $category;
-                    // return trim($category, '/');
-                })->sort()->filter(function ($category) use (&$categories) {
-                    return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
-                })->filter(function ($category) use (&$categories) {
-                    return substr_count($category, '-') > 1 ? true : ($categories[$category] = $category) && false;
-                })->filter(function ($category) use (&$categories) {
-                    return substr_count($category, '-') > 2 ? true : ($categories[$category] = $category) && false;
-                })->filter(function ($category) use (&$categories) {
-                    return substr_count($category, '-') > 3 ? true : ($categories[$category] = $category) && false;
-                })->filter(function ($category) use (&$categories) {
-                    return substr_count($category, '-') > 4 ? true : ($categories[$category] = $category) && false;
-                });
+            $businesses->flatMap(function ($business) {
+                return $business['_source']['categories'];
+            })->unique()
+            ->sortBy('name')
+            ->filter(function ($category) use (&$categories) {
+                return strpos($category['name'], '-') !== false ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 1 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 2 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 3 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 4 ? true : ($categories[$category['name']] = $category['id']) && false;
+            });
         }
 
         return $categories;
