@@ -23,32 +23,14 @@ class BusinessSearchRule extends SearchRule
     /**
      * @inheritdoc
      */
-    public function buildQueryPayload() {
+    public function buildQueryPayload()
+    {
         $keyword = $this->builder->query;
 
-	session_start();
-	$bounds = false;
-	$filter = [];
-	if(isset($_SESSION['last_biz_map_query'])) {
-		$bounds = $_SESSION['last_biz_map_query'];
-		$filter = [
-			'bool' => [
-			    'must' => [
-				'geo_bounding_box' => [
-				    'location' => $bounds,
-				],
-			    ],
-			],
-		    ];
-	}
-
-
-	$fuzz = 0;
-        if(strlen($keyword) >= 4) {
-            $fuzz = 1;
-        }
-        if(strlen($keyword) >= 6) {
-            $fuzz = 2;
+        if (strlen($keyword) >= 4) {
+            $fuzz = strlen($keyword) >= 6 ? 2 : 1;
+        } else {
+            $fuzz = 0;
         }
 
         $queryMatch = [
@@ -66,10 +48,7 @@ class BusinessSearchRule extends SearchRule
                     ],
             ],
         ];
-	if(!empty($filter)) {
-            $queryMatch['filter'] = $filter;
-	}
 
-	return $queryMatch;
+        return $queryMatch;
     }
 }

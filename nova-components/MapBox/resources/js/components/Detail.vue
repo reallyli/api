@@ -20,30 +20,21 @@ const API_KEY =
   "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.JuV5MaCB2t0sdAgwxrJVbQ";
 
 export default {
-  props: {
-      businessId: {
-          required: true,
-          type: Number
-      },
-      lat: {
-          required: false,
-      },
-      lng: {
-          required: false,
-      }
-  },
+  props: ['businessid','lat', 'lng'],
   data() {
-      
+
     return {
       isHiddenAttributes: false,
       attributes: '',
       totalBusinesses: 0,
       totalReviews: 0,
       totalImages: 0,
-      map: null
+      map: null,
+        businessId:null
     };
   },
   mounted() {
+      this.businessId = this.businessid;
     this.init();
   },
   methods: {
