@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
-class VerifyEmailNotification extends Notification
+class VerifyEmailNotification extends VerifyEmail
 {
     /**
      * The callback that should be used to build the mail message.
@@ -27,12 +27,9 @@ class VerifyEmailNotification extends Notification
     {
         return ['mail'];
     }
-
+    
     /**
-     * Build the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @inherit
      */
     public function toMail($notifiable)
     {
@@ -41,29 +38,27 @@ class VerifyEmailNotification extends Notification
         }
 
         return (new MailMessage)
-            ->subject(Lang::getFromJson('Verify Email Address'))
-            ->line(Lang::getFromJson('Thanks for signing up!, please click the below to verify your email address.'))
+            ->subject(__('Verify Email Address'))
+            ->line(__('Thanks for signing up!, please click the below to verify your email address.'))
             ->action(
-                \Lang::getFromJson('Verify Email Address'),
-                \URL::temporarySignedRoute(
-                    "verification.email" , Carbon::now()->addMinutes(60), ['id' => $notifiable->getKey()]
-                )
+                __('Verify Email Address'),
+                $this->verificationUrl($notifiable)
             )
-            ->line(Lang::getFromJson('If you did not create an account, no further action is required.'));
+            ->line(__('If you did not create an account, no further action is required.'));
     }
 
     /**
-     * Get the verification URL for the given notifiable.
-     *
-     * @param  mixed  $notifiable
-     * @return string
+     * @inherit
      */
-    protected function verificationUrl($notifiable)
+    public function verificationUrl($notifiable)
     {
         return URL::temporarySignedRoute(
-            'verification.email', Carbon::now()->addMinutes(60), ['id' => $notifiable->getKey()]
+            'verification.email',
+            Carbon::now()->addMinutes(60),
+            ['id' => $notifiable->getKey()]
         );
     }
+
 
     /**
      * Set a callback that should be used when building the notification mail message.

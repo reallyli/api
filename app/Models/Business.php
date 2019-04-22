@@ -13,7 +13,7 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
-    const LIMIT = 10000;
+    const LIMIT = 10000; // needs to be optimized
 
     protected $guarded = [];
 
@@ -112,6 +112,24 @@ class Business extends Model
                     ],
                 ],
             ],
+            'reviews'      => [
+                'type'       => 'nested',
+                'properties' => [
+                    'id'   => [
+                        'type'  => 'integer',
+                        'index' => 'false',
+                    ],
+                ],
+            ],
+            'posts'      => [
+                'type'       => 'nested',
+                'properties' => [
+                    'id'   => [
+                        'type'  => 'integer',
+                        'index' => 'false',
+                    ],
+                ],
+            ],
             'location'        => [
                 'type'  => 'geo_point',
                 'index' => 'true',
@@ -162,9 +180,11 @@ class Business extends Model
                 'lat' => $this->lat,
                 'lon' => $this->lng,
             ],
-            'total_reviews'       => $this->reviews_count,
-            'total_posts'         => $this->posts_count,
+            'total_reviews'       => $this->total_reviews,
+            'total_posts'         => $this->total_posts,
             'categories'          => $this->categories,
+            'reviews'             => $this->reviews,
+            'posts'               => $this->posts,
             'optional_attributes' => $this->optionalAttributes,
             'internal_score'      => $this->internal_score,
             'score'             => $this->score,
@@ -235,7 +255,7 @@ class Business extends Model
      */
     private function updateScore()
     {
-        $countReviews = $this->reviews_count;
+        $countReviews = $this->total_reviews;
         $avgReview    = $this->reviews_avg_code;
 
         if ($countReviews === 0) {
@@ -301,13 +321,11 @@ class Business extends Model
      */
     public function categories()
     {
-        return
-        $this
+        return $this
             ->belongsToMany(Category::class, 'business_category')
             ->withPivot(['relevance'])
             ->withTimestamps()
-            ->orderBy('relevance', 'DESC')
-        ;
+            ->orderBy('relevance', 'DESC');
     }
     
     public function contacts()
@@ -382,21 +400,9 @@ class Business extends Model
      */
     public function reviews()
     {
-        return
-        $this
-            ->hasMany(BusinessReview::class)
-            ->select(['*', DB::raw("IF(`comment` > '', 1, 0) `order`")])
-            ->orderBy('order', 'DESC')
-            ->orderBy('created_at', 'DESC');
-    }
-
-    public function getReviewsCountAttribute($count)
-    {
-        if ($count === null) {
-            $count = $this->reviews()->count();
-        }
-
-        return $count;
+        return $this->hasMany(BusinessReview::class)
+                ->whereNotNull('comment')
+                ->latest();
     }
 
     public function reviewsAvgCode()
@@ -437,15 +443,6 @@ class Business extends Model
     public function posts()
     {
         return $this->hasMany(BusinessPost::class);
-    }
-
-    public function getPostsCountAttribute($count)
-    {
-        if ($count === null) {
-            $count = $this->posts()->count();
-        }
-
-        return $count;
     }
 
     public function postsExists()

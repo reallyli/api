@@ -12,10 +12,6 @@ import Checkbox from '@/components/Index/Checkbox'
 import ConfirmActionModal from '@/components/Modals/ConfirmActionModal'
 import ConfirmUploadRemovalModal from '@/components/Modals/ConfirmUploadRemovalModal'
 import CreateResourceButton from '@/components/CreateResourceButton'
-import CustomIndexToolbar from '@/components/CustomIndexToolbar'
-import CustomIndexHeader from '@/components/CustomIndexHeader'
-import CustomDetailToolbar from '@/components/CustomDetailToolbar'
-import CustomDetailHeader from '@/components/CustomDetailHeader'
 import DeleteMenu from '@/components/DeleteMenu'
 import DeleteResourceModal from '@/components/Modals/DeleteResourceModal'
 import Dropdown from '@/components/Dropdown'
@@ -23,7 +19,6 @@ import DropdownMenu from '@/components/DropdownMenu'
 import DropdownTrigger from '@/components/DropdownTrigger'
 import Error404 from '@/views/Error404'
 import Error403 from '@/views/Error403'
-import Excerpt from '@/components/Excerpt'
 import Bold from '@/components/Icons/Editor/Bold'
 import FullScreen from '@/components/Icons/Editor/FullScreen'
 import GlobalSearch from '@/components/GlobalSearch'
@@ -78,10 +73,6 @@ Vue.component('checkbox', Checkbox)
 Vue.component('confirm-action-modal', ConfirmActionModal)
 Vue.component('confirm-upload-removal-modal', ConfirmUploadRemovalModal)
 Vue.component('create-resource-button', CreateResourceButton)
-Vue.component('custom-index-toolbar', CustomIndexToolbar)
-Vue.component('custom-index-header', CustomIndexHeader)
-Vue.component('custom-detail-toolbar', CustomDetailToolbar)
-Vue.component('custom-detail-header', CustomDetailHeader)
 Vue.component('delete-menu', DeleteMenu)
 Vue.component('delete-resource-modal', DeleteResourceModal)
 Vue.component('dropdown', Dropdown)
@@ -94,7 +85,6 @@ Vue.component('editor-italic', Italic)
 Vue.component('editor-link', Link)
 Vue.component('error-403', Error403)
 Vue.component('error-404', Error404)
-Vue.component('excerpt', Excerpt)
 Vue.component('fake-checkbox', FakeCheckbox)
 Vue.component('filter-select', FilterSelect)
 Vue.component('filter-selector', FilterSelector)

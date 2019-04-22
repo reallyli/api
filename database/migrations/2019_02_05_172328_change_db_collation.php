@@ -13,9 +13,11 @@ class ChangeDbCollation extends Migration
      */
     public function up()
     {
-        $tables = \DB::connection()->getDoctrineSchemaManager()->listTableNames();
-        foreach ($tables as $key => $table) {
-            \DB::statement("ALTER TABLE {$table} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        if (DB::getDriverName() !== 'sqlite') {
+            $tables = \DB::connection()->getDoctrineSchemaManager()->listTableNames();
+            foreach ($tables as $key => $table) {
+                \DB::statement("ALTER TABLE {$table} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            }
         }
     }
 

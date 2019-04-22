@@ -25,9 +25,9 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name'      => 'nullable|string|max:255',
-            'email'     => 'required_without:password|email|unique:users,email',
+            'email'     => 'required_without:phone_number|email|nullable|unique:users',
             'password'  => 'required',
-            'phone_number'  => 'required_without:email|unique:users,phone_number',
+            'phone_number'  => 'required_without:email|unique:users',
             'age_group' => 'nullable|string|max:255',
             'gender'    => 'nullable|string|max:255',
             'cover_photo' => 'nullable|image',

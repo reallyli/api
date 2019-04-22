@@ -7,11 +7,11 @@
                     <td>
                         <b>{{ __("Total businesses:") }}</b>
                     </td>
-                    <td>{{ totalBusinesses }}</td>
+                    <td class="pr-2">{{ totalBusinesses }}</td>
                     <td>
                         <b>{{ __("Total reviews:") }}</b>
                     </td>
-                    <td id="totalReviews">{{ totalReviews }}</td>
+                    <td id="totalReviews" class="pr-2">{{ totalReviews }}</td>
                     <td>
                         <b>{{ __("Total images:") }}</b>
                     </td>
@@ -41,9 +41,9 @@ export default {
             map: null,
             index: "",
             iControl: 0,
-            totalImages: 0,
             attributes: "",
             businesses: "",
+            totalImages: 0,
             totalReviews: 0,
             totalBusinesses: 0
         };
@@ -73,67 +73,12 @@ export default {
 
             return JSON.parse(this.getCookie("map_position"));
         },
-        applyFilters({ useCoords } = {}) {
-            const getBounds = () => {
-                let topLeftLat = this.map.getBounds().getNorthWest().lat,
-                    topLeftLng = this.map.getBounds().getNorthWest().lng,
-                    bottomRightLat = this.map.getBounds().getSouthEast().lat,
-                    bottomRightLng = this.map.getBounds().getSouthEast().lng;
-
-                if (topLeftLat > 90) {
-                    topLeftLat = 90;
-                }
-                if (topLeftLat < -90) {
-                    topLeftLat = -90;
-                }
-                if (topLeftLng > 180) {
-                    topLeftLng = 180;
-                }
-                if (topLeftLng < -180) {
-                    topLeftLng = -180;
-                }
-                if (bottomRightLat > 90) {
-                    bottomRightLat = 90;
-                }
-                if (bottomRightLat < -90) {
-                    bottomRightLat = -90;
-                }
-                if (bottomRightLng > 180) {
-                    bottomRightLng = 180;
-                }
-                if (bottomRightLng < -180) {
-                    bottomRightLng = -180;
-                }
-
-                return {
-                    "top_left[lat]": topLeftLat,
-                    "top_left[lng]": topLeftLng,
-                    "bottom_right[lat]": bottomRightLat,
-                    "bottom_right[lng]": bottomRightLng
-                };
-            };
-
-            const opts = {
-                ...this.$route.query
-            };
-
-            if (useCoords) {
-                Object.assign(opts, getBounds());
-            }
-
-            return queryString.stringify(opts);
-        },
         getGeoJsonUrl() {
             return `/api/v1/businesses/geo-json?bounds=${this.map
                 .getBounds()
                 .toArray()}&center=${this.map.getCenter().toArray()}&id=${
                 Nova.config.userId
             }`;
-        },
-        getStatsUrl() {
-            return `/api/v1/businesses/stats?${this.applyFilters({
-                useCoords: true
-            })}`;
         },
         createMap() {
             mapboxgl.accessToken = API_KEY;
@@ -149,8 +94,6 @@ export default {
                 zoom: this.getCenter().zoom
             });
 
-            console.log(this.getStatsUrl());
-
             this.addClusters();
         },
 
@@ -160,14 +103,6 @@ export default {
             let map = this.map;
             map.addControl(new mapboxgl.NavigationControl());
             map.on("load", () => {
-                Nova.request()
-                    .get(this.getStatsUrl())
-                    .then(response => {
-                        this.totalImages = response.data.totalImages;
-                        this.totalReviews = response.data.totalReviews;
-                        this.attributes = response.data.attributes;
-                    });
-
                 map.on("click", "clusters", function(e) {
                     var features = map.queryRenderedFeatures(e.point, {
                         layers: ["clusters"]
@@ -215,7 +150,7 @@ export default {
 
                 map.on(
                     "zoomend",
-                    function() {
+                    _.debounce(() => {
                         this.setCookie(
                             "map_position",
                             JSON.stringify({
@@ -224,20 +159,13 @@ export default {
                             })
                         );
 
-                        Nova.request()
-                            .get(this.getStatsUrl())
-                            .then(response => {
-                                this.totalImages = response.data.totalImages;
-                                this.totalReviews = response.data.totalReviews;
-                                this.attributes = response.data.attributes;
-                            });
                         this.updateMap();
-                    }.bind(this)
+                    }, 500)
                 );
 
                 map.on(
                     "dragend",
-                    function() {
+                    _.debounce(() => {
                         this.setCookie(
                             "map_position",
                             JSON.stringify({
@@ -246,16 +174,8 @@ export default {
                             })
                         );
 
-                        Nova.request()
-                            .get(this.getStatsUrl())
-                            .then(response => {
-                                this.totalImages = response.data.totalImages;
-                                this.totalReviews = response.data.totalReviews;
-                                this.attributes = response.data.attributes;
-                            });
-
                         this.updateMap();
-                    }.bind(this)
+                    }, 500)
                 );
 
                 map.addSource("places", {
@@ -333,13 +253,7 @@ export default {
             // set search bounds
             this.removeControl().addControl();
 
-            this.updateIndexResources();
-
-            // Nova.request()
-            //     .get("/nova-vendor/mapbox/totoal-business")
-            //     .then(({ data }) => {
-            //         console.log(data);
-            //     });
+            setTimeout(this.updateIndexResources, 2000);
         },
 
         redraw() {
@@ -378,16 +292,20 @@ export default {
         },
 
         updateIndexResources() {
-            if (this.index) {
-                // Call the resource updater
-                this.index.getResources();
-                this.index.getFilters();
-                setTimeout(
-                    () =>
-                        (this.totalBusinesses = this.index.allMatchingResourceCount),
-                    2000
-                );
-            }
+            // Call the resource updater
+            this.index.getResources();
+            this.index.getFilters();
+            this.updateTotals();
+        },
+
+        updateTotals() {
+            Nova.request()
+                .get("/nova-vendor/mapbox/business-totals")
+                .then(({ data }) => {
+                    this.totalBusinesses = data.totalBusinesses;
+                    this.totalReviews = data.totalReviews;
+                    this.totalImages = data.totalImages;
+                });
         }
     }
 };

@@ -39,14 +39,16 @@ class BusinessReview extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function business() {
+    public function business()
+    {
         return $this->belongsTo(Business::class);
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
@@ -76,9 +78,9 @@ class BusinessReview extends Model
     /**
      * @return string
      */
-    public function getKeywordsListAttribute() {
+    public function getKeywordsListAttribute()
+    {
         return
             $this->hasMany(BusinessReviewKeyword::class)->pluck('keyword')->implode(', ');
     }
-
 }

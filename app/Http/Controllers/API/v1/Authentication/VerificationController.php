@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers\API\v1\Authentication;
 
-use App\Events\EmailVerified;
-use App\Http\Controllers\Controller;
-use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\Request;
-use Illuminate\Auth\Events\Verified;
+use App\Events\EmailVerified;
+use App\Events\SmsCodeVerified;
+use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
-class VerificationController extends Controller {
+class VerificationController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('signed')->only('verify');
+        $this->middleware('auth:api');
+    }
 
     /**
      * @OA\Get(
@@ -29,23 +32,18 @@ class VerificationController extends Controller {
      */
     public function verify(Request $request)
     {
-        if(!$request->user()) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ]);
-        }
-
         if ($request->route('id') != $request->user()->getKey()) {
             throw new AuthorizationException;
         }
 
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect($this->redirectPath());
+            return response()->json([
+                'verification' => 'Email has been already verified.'
+            ]);
         }
 
         if ($request->user()->markEmailAsVerified()) {
             event(new EmailVerified($request->user()));
-//            $request->user()->notify(new VerifyEmail($request->user()));
         }
 
         $request->user()->update([
@@ -55,6 +53,23 @@ class VerificationController extends Controller {
         return response()->json([
             'verification' => true
         ]);
+    }
+
+    /**
+     * Resend the email verification notification.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function resend(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json('User already have verified email.', 422);
+        }
+
+        $request->user()->sendVerification();
+
+        return response()->json('Email has been reseneded.');
     }
 
     /**
@@ -84,22 +99,37 @@ class VerificationController extends Controller {
      * @return \Illuminate\Http\Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function verifySMS(Request $request)
+    public function verifySms(Request $request)
     {
-        if (Hash::check($request->verification_code, $request->user()->verification_code)) {
-            $request->user()->update([
-                'verified' => true
-            ]);
+        if ($request->route('id') != $request->user()->getKey()) {
+            throw new AuthorizationException;
+        }
 
+        if ($request->user()->hasVerifiedCode()) {
             return response()->json([
-                'verification' => true
+                'verification' => 'Verification code has been already verified.'
             ]);
         }
 
-        return response()->json([
-            'verification' => false
-        ]);
+        if ($request->verification_code != $request->user()->verification_code) {
+            return response()->json(['verification' => 'Wrong verification code.']);
+        }
+
+        event(new SmsCodeVerified($request->user()));
+
+        $request->user()->update(['verified' => true]);
+    
+        return response()->json(['verification' => true]);
     }
 
+    public function resendSms(Request $request)
+    {
+        if ($request->user()->hasVerifiedCode()) {
+            return response()->json('User has already verified sms.', 422);
+        }
 
+        $request->user()->sendVerification();
+
+        return response()->json('Sms has been reseneded.');
+    }
 }

@@ -75,32 +75,28 @@ class RegistrationController extends Controller
      */
     protected function create(StoreUserRequest $request)
     {
-
-        DB::beginTransaction();
-
-        $user = new User(); 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->phone_number  = $request->phone_number;
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        if (\App::environment(['local', 'staging'])) {
+        if (app()->environment('testing')) {
+            $user = $request->all();
+        } else {
+            $user = array_merge($request->all(), [Hash::make($request->password)]);
+        }
+        
+        $user = User::create($user);
+        
+        if (app()->environment(['staging'])) {
             $user->update([
                 'verified' => true,
                 'email_verified_at' => Carbon::now()
-            ]);
+                ]);
         } else {
             $user->sendVerification();
         }
 
         $response = ['access_token' => $user->generateToken()];
 
-        DB::commit();
-
         return $this->sendResponse(
-            $response, 201
+            $response,
+            201
         );
     }
-
 }

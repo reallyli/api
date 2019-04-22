@@ -2,23 +2,20 @@
 
 namespace App\Nova;
 
-use Acme\ImageBox\ImageBox;
 use Acme\MapBox\MapBox;
 use Acme\MapField\MapField;
-use App\Nova\Actions\GenerateBusinessBioAction;
-use App\Nova\BusinessOpeningHours;
-use App\Nova\Filters\BusinessCategory;
-use Laravel\Nova\Fields\Avatar;
-use Laravel\Nova\Fields\BelongsToMany;
-use Laravel\Nova\Fields\Boolean;
-use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Image;
-use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Panel;
+use Laravel\Nova\Fields\Avatar;
+use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\HasMany;
+use App\Nova\BusinessOpeningHours;
+use App\Nova\Filters\BusinessCategory;
+use Laravel\Nova\Fields\BelongsToMany;
 use App\Models\Business as ModelBusiness;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class Business extends Resource
 {
@@ -67,19 +64,12 @@ class Business extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        if ($businessCount = cache('business_count'.auth()->id()) == 0) {
+        if (cache('business_count'.auth()->id()) == 0) {
             return $query->where('id', 0); // no result
         }
-
-        if ($businessCount <= ModelBusiness::LIMIT) {
-            $businesses = cache('business_builder'.auth()->id())
-                            ->select(['businesses.id'])
-                            ->take(ModelBusiness::LIMIT)
-                            ->get()
-                            ->pluck('id')
-                            ->toArray();
-
-            $query->whereIn('businesses.id', $businesses);
+        
+        if ($ids = cache('business_ids'.auth()->id())) {
+            $query->whereIn('businesses.id', json_decode($ids, true));
         }
 
         if (empty($request->get('orderBy'))) {

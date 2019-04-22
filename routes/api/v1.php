@@ -30,23 +30,19 @@ Route::get('/manifest', function () {
     ];
 });
 
-Route::put('put-test', function(\Illuminate\Support\Facades\Request $request) {
+Route::put('put-test', function (\Illuminate\Support\Facades\Request $request) {
     return $request;
 });
 
 Route::post('/login', 'Authentication\LoginController@store');
 Route::post('/register', 'Authentication\RegistrationController@create');
 
-Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email')->middleware('signed', 'auth:api');
+Route::get('/email/verify/{id}', 'Authentication\VerificationController@verify')->name('verification.email');
+Route::get('/email/resend', 'Authentication\VerificationController@resend')->name('verification.email.resend');
 
-//use Illuminate\Http\Request;
-//
-//Route::get('/email/verify/{id}', function(Request $request) {
-//    return $request;
-//})->name('verification.email')->middleware('signed');
-
-
-Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->name('verification.sms')->middleware('auth:api');
+Route::post('/sms/verify/{id}', 'Authentication\VerificationController@verifySms')->name('verification.sms');
+Route::get('/sms/resend', 'Authentication\VerificationController@resendSms')->name('verification.sms.resend');
+    
 
 /**
  *  Business
@@ -55,7 +51,6 @@ Route::post('/sms/verify', 'Authentication\VerificationController@verifySMS')->n
     Route::get('/businesses/geo-json', 'BusinessesController@geoJson');
     Route::get('/businesses/geo-json/{business_id}', 'BusinessesController@geoJsonByBisinessID');
     
-    Route::get('/businesses/stats', 'BusinessesController@stats');
     Route::get('/categories/business-stats', 'CategoriesController@businessStats');
     Route::get('/reviews-datatable/{business_id}', 'BusinessesController@getReviewsDatatable');
     Route::get('/post-images-datatable/{business_id}', 'BusinessesController@getPostImagesDatatable');
@@ -67,7 +62,7 @@ Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/logout', 'Authentication\LoginController@logout');
 
 
-    Route::get('test', function() {
+    Route::get('test', function () {
         return ['key' => 'value'];
     });
 
