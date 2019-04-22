@@ -136,6 +136,22 @@ To regenerate the elastic search indexes:
 docker-compose run --rm app php artisan elastic:setup-indexes
 ```
 
+# Twilio account
+
+Add your Twilio Account SID, Auth Token, and From Number (optional) to your config/services.php:
+
+```php
+...
+'twilio' => [
+    'username' => env('TWILIO_USERNAME'), // optional when using auth token
+    'password' => env('TWILIO_PASSWORD'), // optional when using auth token
+    'auth_token' => env('TWILIO_AUTH_TOKEN'), // optional when using username and password
+    'account_sid' => env('TWILIO_ACCOUNT_SID'),
+    'from' => env('TWILIO_NUMBER'), // optional
+],
+...
+```
+
 # Mac Set-up
 
 ```Docker Mac
@@ -247,7 +263,7 @@ RESET A PASSWORD
 ===================================
 cd <your_larave_project_directory_path>
 php artisan tinker
-Psy Shell v0.4.4 (PHP 5.5.28 — cli) by Justin Hileman
+Psy Shell v0.4.4 (PHP 5.5.28 ï¿½ cli) by Justin Hileman
 >>>
 $user = User::where('email', 'admin@test.com')->first();
 $user->password = Hash::make('d0asnas08s43');
