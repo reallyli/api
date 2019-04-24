@@ -5,13 +5,11 @@ namespace Tests\Feature;
 use App\Models\User;
 use Artisan;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-
 
 class RegisterTest extends TestCase
 {
-    use WithFaker, RefreshDatabase;
+    use RefreshDatabase;
 
     protected function setUp()
     {
@@ -23,17 +21,13 @@ class RegisterTest extends TestCase
     public function a_user_can_register_via_email()
     {
         $user = make('App\Models\User', [
-            'uuid' => null,
-            'phone_number' => '',
-            'password' => $this->faker->password,
             'email_verified_at' => null,
         ]);
 
         unset($user['phone_number']);
 
-        $response = $this->withExceptionHandling()
-            ->json('POST', '/api/v1/register', $user->toArray())
-            ->assertSee('access_token' )
+        $this->json('POST', '/api/v1/register', $user->toArray())
+            ->assertSee('access_token')
             ->assertStatus(201);
 
         $this->assertDatabaseHas('users', [
@@ -73,7 +67,7 @@ class RegisterTest extends TestCase
            'email' => $email
         ]);
 
-        $userTwo = make( User::class, [
+        $userTwo = make(User::class, [
             'email' => $email
         ]);
 
@@ -96,7 +90,7 @@ class RegisterTest extends TestCase
 
         unset($userOne['email']);
 
-        $userTwo = make( User::class, [
+        $userTwo = make(User::class, [
             'phone_number' => $phoneNumber
         ]);
 
@@ -113,4 +107,3 @@ class RegisterTest extends TestCase
             ]);
     }
 }
-

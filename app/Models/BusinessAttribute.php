@@ -51,13 +51,15 @@ class BusinessAttribute extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function business() {
+    public function business()
+    {
         return $this->belongsTo(Business::class);
     }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function label() {
+    public function label()
+    {
         return $this->hasOne(Label::class, 'key', 'key');
     }
 }

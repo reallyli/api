@@ -21,8 +21,7 @@ class BusinessCategory extends Filter
         return $query
             ->select('businesses.*')
             ->join('business_category', 'businesses.id', '=', 'business_category.business_id')
-            ->join('categories', 'business_category.category_id', '=', 'categories.id')
-            ->where('categories.name', $value);
+            ->where('business_category.category_id', $value);
     }
 
     /**
@@ -33,13 +32,29 @@ class BusinessCategory extends Filter
      */
     public function options(Request $request)
     {
-        $categories = Category::pluck('name')->all();
-        $results    = [];
+        $categories = [];
 
-        foreach ($categories as $category) {
-            $results[$category] = $category;
+        if ($businesses = cache('business_builder'.auth()->id())) {
+            // a
+            // a-a
+            // a-a-a
+            $businesses->flatMap(function ($business) {
+                return $business['_source']['categories'];
+            })->unique()
+            ->sortBy('name')
+            ->filter(function ($category) use (&$categories) {
+                return strpos($category['name'], '-') !== false ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 1 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 2 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 3 ? true : ($categories[$category['name']] = $category['id']) && false;
+            })->filter(function ($category) use (&$categories) {
+                return substr_count($category['name'], '-') > 4 ? true : ($categories[$category['name']] = $category['id']) && false;
+            });
         }
 
-        return $results;
+        return $categories;
     }
 }

@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Textarea;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class User extends Resource
 {
@@ -109,19 +110,19 @@ class User extends Resource
                     'maxlength'   =>'140']
                 ]),
             Boolean::make('Verified', 'verified'),
-            Boolean::make('Location Tracking','allow_location_tracking')
+            Boolean::make('Location Tracking', 'allow_location_tracking')
                     ->trueValue('1')
                     ->falseValue('0')
                     ->hideFromIndex(),
-            Boolean::make('Post Publicly','post_publicly')
+            Boolean::make('Post Publicly', 'post_publicly')
                     ->trueValue('1')
                     ->falseValue('0')
                     ->hideFromIndex(),
-            Boolean::make('T&C Agreed','t_c_agreed')
+            Boolean::make('T&C Agreed', 't_c_agreed')
                     ->trueValue('1')
                     ->falseValue('0')
                     ->hideFromIndex(),
-            Boolean::make('Profile Visible','profile_visible')
+            Boolean::make('Profile Visible', 'profile_visible')
                     ->trueValue('1')
                     ->falseValue('0')
                     ->hideFromIndex(),

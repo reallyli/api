@@ -18,6 +18,10 @@ Route::get('/places', function (Request $request) {
     return response()->json(url('/api/v1/places/geo-json'));
 });
 
-Route::get('/id', function (Request $request) {
-    return response()->json(auth()->id());
+Route::get('/business-totals', function (Request $request) {
+    return response()->json([
+        'totalBusinesses' => cache('business_count'.auth()->id()),
+        'totalReviews' => cache('review_count'.auth()->id()),
+        'totalImages' => cache('post_count'.auth()->id()),
+    ]);
 });

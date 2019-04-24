@@ -13,7 +13,7 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
-    const LIMIT = 1000;
+    const LIMIT = 10000; // needs to be optimized
 
     protected $guarded = [];
 
@@ -112,6 +112,24 @@ class Business extends Model
                     ],
                 ],
             ],
+            'reviews'      => [
+                'type'       => 'nested',
+                'properties' => [
+                    'id'   => [
+                        'type'  => 'integer',
+                        'index' => 'false',
+                    ],
+                ],
+            ],
+            'posts'      => [
+                'type'       => 'nested',
+                'properties' => [
+                    'id'   => [
+                        'type'  => 'integer',
+                        'index' => 'false',
+                    ],
+                ],
+            ],
             'location'        => [
                 'type'  => 'geo_point',
                 'index' => 'true',
@@ -162,9 +180,11 @@ class Business extends Model
                 'lat' => $this->lat,
                 'lon' => $this->lng,
             ],
-            'total_reviews'       => $this->reviews_count,
-            'total_posts'         => $this->posts_count,
+            'total_reviews'       => $this->total_reviews,
+            'total_posts'         => $this->total_posts,
             'categories'          => $this->categories,
+            'reviews'             => $this->reviews,
+            'posts'               => $this->posts,
             'optional_attributes' => $this->optionalAttributes,
             'internal_score'      => $this->internal_score,
             'score'             => $this->score,
@@ -235,18 +255,18 @@ class Business extends Model
      */
     private function updateScore()
     {
-        $countReviews = $this->reviews_count;
+        $countReviews = $this->total_reviews;
         $avgReview    = $this->reviews_avg_code;
 
         if ($countReviews === 0) {
             $score = 80;
-        } else if ($countReviews < 5) {
+        } elseif ($countReviews < 5) {
             $score = ($avgReview / $countReviews * 0.3 + 0.5) * 100;
         } else {
             $score = $avgReview / $countReviews * 100;
         }
 
-		$score = round($score);
+        $score = round($score);
 
         $this->score = $score;
     }
@@ -301,13 +321,11 @@ class Business extends Model
      */
     public function categories()
     {
-        return
-        $this
+        return $this
             ->belongsToMany(Category::class, 'business_category')
             ->withPivot(['relevance'])
             ->withTimestamps()
-            ->orderBy('relevance', 'DESC')
-        ;
+            ->orderBy('relevance', 'DESC');
     }
     
     public function contacts()
@@ -382,121 +400,122 @@ class Business extends Model
      */
     public function reviews()
     {
-        return
-        $this
-            ->hasMany(BusinessReview::class)
-            ->select(['*', DB::raw("IF(`comment` > '', 1, 0) `order`")])
-            ->orderBy('order', 'DESC')
-            ->orderBy('created_at', 'DESC');
+        return $this->hasMany(BusinessReview::class)
+                ->whereNotNull('comment')
+                ->latest();
     }
 
-    public function getReviewsCountAttribute($count) {
-        if ($count === null) {
-            $count = $this->reviews()->count();
-        }
-
-        return $count;
-    }
-
-    public function reviewsAvgCode() {
+    public function reviewsAvgCode()
+    {
         return $this->hasManyAvg('score', BusinessReview::class);
     }
 
-    public function getReviewsAvgCodeAttribute() {
+    public function getReviewsAvgCodeAttribute()
+    {
         return $this->getAvgAttributeValue('reviewsAvgCode');
     }
 
-    public function reviewsExists() {
+    public function reviewsExists()
+    {
         return $this->hasManyExists(BusinessReview::class);
     }
 
-    public function getReviewsExistsAttribute() {
+    public function getReviewsExistsAttribute()
+    {
         return $this->getExistsAttributeValue('reviewsExists');
     }
 
-    public function postImages() {
+    public function postImages()
+    {
         return $this->hasMany(BusinessPost::class)->with('images.labels');
     }
 
-    public function images() {
+    public function images()
+    {
         return $this->hasManyThrough(BusinessPostImage::class, BusinessPost::class);
     }
 
-    public function createReview($data) {
+    public function createReview($data)
+    {
         return $this->reviews()->create($data);
     }
 
-    public function posts() {
+    public function posts()
+    {
         return $this->hasMany(BusinessPost::class);
     }
 
-    public function getPostsCountAttribute($count) {
-        if ($count === null) {
-            $count = $this->posts()->count();
-        }
-
-        return $count;
-    }
-
-    public function postsExists() {
+    public function postsExists()
+    {
         return $this->hasManyExists(BusinessPost::class);
     }
 
-    public function getPostsExistsAttribute() {
+    public function getPostsExistsAttribute()
+    {
         return $this->getExistsAttributeValue('postsExists');
     }
 
-    public function users() {
+    public function users()
+    {
         return $this
             ->belongsToMany(User::class);
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function optionalAttributes() {
+    public function optionalAttributes()
+    {
         return $this->belongsToMany(OptionalAttribute::class)
             ->withPivot(['description'])
             ->withTimestamps();
     }
 
-    public function setOpenPeriodMinsAttribute($value) {
+    public function setOpenPeriodMinsAttribute($value)
+    {
         $this->attributes['open_period_mins'] = Business::minutesCnt($value);
     }
 
-    public function setClosePeriodMinsAttribute($value) {
+    public function setClosePeriodMinsAttribute($value)
+    {
         $this->attributes['close_period_mins'] = Business::minutesCnt($value);
     }
 
-    public function getLimit() {
+    public function getLimit()
+    {
         return static::LIMIT;
-	}
+    }
 
-    public function topKeywords() {
+    public function topKeywords()
+    {
         $business_id = $this->id;
 
-		$sql = "
+        $sql = "
 			(SELECT COUNT(*) cnt, keyword
 				FROM business_review_keywords LEFT JOIN business_reviews ON business_reviews.id=business_review_keywords.business_review_id
 				WHERE business_id=5792
 				GROUP BY keyword
 			) a
 		";
-	
+    
         $keywords = DB::table(
             DB::raw(
-				$sql
-            ))
+                $sql
+            )
+    
+        )
             ->whereRaw('cnt >=2')
             ->orderByRaw('cnt DESC LIMIT 10')
             ->get();
 
         return $keywords;
-	}
+    }
 
-	public function getTopics() {
-		$bizID = $this->id;
+    public function getTopics()
+    {
+        $bizID = $this->id;
         $sql = "
             SELECT keyword FROM business_review_keywords
                 WHERE business_review_id IN (SELECT id FROM business_reviews WHERE business_id=$bizID)
@@ -511,7 +530,7 @@ class Business extends Model
 
         $MIN_STORY_LEN = 3;
 
-        foreach($kws as $kw) {
+        foreach ($kws as $kw) {
             $kw = strtolower($kw['keyword']);
             $sql = "
                     SELECT keyword, id FROM business_review_keywords
@@ -528,9 +547,9 @@ class Business extends Model
             $rtn = self::__toAssoc($rtn);
 
             $dat = array();
-            foreach($rtn as $r) {
+            foreach ($rtn as $r) {
                 $r['keyword'] = strtolower($r['keyword']);
-                if(!isset($dat[$r['keyword']])) {
+                if (!isset($dat[$r['keyword']])) {
                     $dat[$r['keyword']] = array(
                         'keyword'=>$r['keyword'],
                         'cnt'=>0,
@@ -541,15 +560,15 @@ class Business extends Model
                 $dat[$r['keyword']]['ids'][]= $r['id'];
             }
 
-            if(count($dat) >= $MIN_STORY_LEN) {
+            if (count($dat) >= $MIN_STORY_LEN) {
                 $stories[$kw] = $dat;
             }
         }
 
         $sort = array();
-        foreach($stories as $k=>$phrases) {
+        foreach ($stories as $k=>$phrases) {
             $cnt = 0;
-            foreach($phrases as $p) {
+            foreach ($phrases as $p) {
                 $cnt += $p['cnt'];
             }
             $sort[]= $cnt;
@@ -557,18 +576,18 @@ class Business extends Model
         array_multisort($sort, SORT_DESC, $stories);
 
         $frtn = array();
-        foreach($stories as $storyDat) {
+        foreach ($stories as $storyDat) {
             $maxCnt = 0;
             $maxKw = '';
             $ids = [];
-            foreach($storyDat as $kw=>$kwd) {
-                if($kwd['cnt'] > $maxCnt) {
+            foreach ($storyDat as $kw=>$kwd) {
+                if ($kwd['cnt'] > $maxCnt) {
                     $maxCnt = $kwd['cnt'];
                     $maxKw = $kw;
                 }
                 $ids = array_merge($ids, $kwd['ids']);
             }
-            if($maxCnt < 2) {
+            if ($maxCnt < 2) {
                 continue;
             }
 
@@ -581,20 +600,20 @@ class Business extends Model
             $rtn = DB::select($sql);
             $rtn = self::__toAssoc($rtn);
             $scores = 0;
-            foreach($rtn as $r) {
+            foreach ($rtn as $r) {
                 $r['score'] += 20;
-                if($r['score'] > 100) {
+                if ($r['score'] > 100) {
                     $r['score'] = 100;
                 }
                 $scores += $r['score'];
             }
             $score = round($scores/count($rtn));
 
-			$sort = array();
-			foreach($storyDat as $s) {
-				$sort[]= $s['cnt'];
-			}
-			array_multisort($sort, SORT_DESC, $storyDat);
+            $sort = array();
+            foreach ($storyDat as $s) {
+                $sort[]= $s['cnt'];
+            }
+            array_multisort($sort, SORT_DESC, $storyDat);
 
             $frtn[]= array(
                 "title"=>$maxKw,
@@ -605,11 +624,11 @@ class Business extends Model
             );
         }
 
-		return $frtn;
-	}
-
-    private static function __toAssoc($d) {
-        return json_decode(json_encode($d), true);
+        return $frtn;
     }
 
+    private static function __toAssoc($d)
+    {
+        return json_decode(json_encode($d), true);
+    }
 }

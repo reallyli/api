@@ -57,7 +57,10 @@ export default {
         };
     },
     getGeoJsonUrl() {
-      return '/api/v1/businesses/geo-json/' + this.businessId;
+        setTimeout(function () {
+            return '/api/v1/businesses/geo-json/' + this.businessId;
+        },0)
+
     },
     createMap() {
       mapboxgl.accessToken = API_KEY;

@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
-use App\Notifications\VerifyEmailNotification;
 use App\Traits\HasUuid;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use App\Notifications\VerifySmsNotification;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerifyEmailNotification;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, HasApiTokens, HasUuid, HasRoles;
+
+    public static $validSignatureDuring = 60; // 1hr
 
     /**
      * The table associated with the model.
@@ -140,23 +143,25 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Send account verificaton function
+     * Send account verificaton notification
      */
     public function sendVerification()
     {
         if (isset($this->email)) {
-//            $this->sendEmailVerificationNotification();
-            $this->notify(new VerifyEmailNotification());
-        } else {
-            $pin = \HelperServiceProvider::generatePin(5);
-
-            $this->fill([
-                'verification_code' => Hash::make($pin),
-            ])->save();
-
-            $application = config('app.name');
-            \Twilio::message($this->phone_number, "Thanks for registering to {$application}. Your verification pin is {$pin}. Please sign in to verify your account.");
+            $this->notify(new VerifyEmailNotification);
+            
+            return;
         }
+        
+        $pin = \HelperServiceProvider::generatePin();
+        
+        $this->update(['verification_code' => $pin]);
+        
+        $this->notify(new VerifySmsNotification($pin));
     }
 
+    public function hasVerifiedCode()
+    {
+        return $this->verified;
+    }
 }

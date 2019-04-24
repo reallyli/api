@@ -2,23 +2,20 @@
 
 namespace App\Nova;
 
-use Acme\ImageBox\ImageBox;
 use Acme\MapBox\MapBox;
 use Acme\MapField\MapField;
-use App\Nova\Actions\GenerateBusinessBioAction;
-use App\Nova\BusinessOpeningHours;
-use App\Nova\Filters\BusinessCategory;
-use Laravel\Nova\Fields\Avatar;
-use Laravel\Nova\Fields\BelongsToMany;
-use Laravel\Nova\Fields\Boolean;
-use Laravel\Nova\Fields\HasMany;
 use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Image;
-use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Panel;
+use Laravel\Nova\Fields\Avatar;
+use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\HasMany;
+use App\Nova\BusinessOpeningHours;
+use App\Nova\Filters\BusinessCategory;
+use Laravel\Nova\Fields\BelongsToMany;
 use App\Models\Business as ModelBusiness;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class Business extends Resource
 {
@@ -62,23 +59,19 @@ class Business extends Resource
         'internal_score' => 'desc'
     ];
 
+    /**
+     * {@inheritdoc }
+     */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        $businessCount = cache('business_count'.auth()->id());
-
-        if ($businessCount > 0 && $businessCount <= ModelBusiness::LIMIT) {
-            [$left, $bottom, $right, $top] = explode(',', cache('bounds'.auth()->id()));
-    
-            $builder = $query->getModel()->search('*')->whereGeoBoundingBox(
-                'location',
-                ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
-            );
-    
-            $businesses = $builder->select(['businesses.id'])->take(ModelBusiness::LIMIT)->get()->pluck('id')->toArray();
-    
-            $query->whereIn('businesses.id', $businesses);
+        if (cache('business_count'.auth()->id()) == 0) {
+            return $query->where('id', 0); // no result
         }
         
+        if ($ids = cache('business_ids'.auth()->id())) {
+            $query->whereIn('businesses.id', json_decode($ids, true));
+        }
+
         if (empty($request->get('orderBy'))) {
             $query->getQuery()->orders = [];
             $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
@@ -120,7 +113,9 @@ class Business extends Resource
                         'name' => $name,
                         'id'   => $this->id,
                     ])->render();
-                }),
+                })
+                ->hideWhenCreating()
+                ->hideWhenUpdating(),
             Text::make('uuid')
                 ->onlyOnDetail(),
             Text::make('bio')
@@ -154,7 +149,7 @@ class Business extends Resource
                 ->hideFromIndex()
                 ->hideFromDetail(),
             Image::make('Image', 'avatar')->disk('s3')
-                ->creationRules('required', 'image','mimes:jpg,jpeg,png,gif'),
+                ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
             BelongsToMany::make('Categories', 'categories', Category::class),
             HasMany::make('DataAI Keywords', 'keywords', BusinessKeyword::class),
 //            new Panel('Posts', [
@@ -165,7 +160,6 @@ class Business extends Resource
 //            ]),
             HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
             HasMany::make('Reviews', 'reviews', BusinessReview::class),
-            HasMany::make('Attributes', 'attributes', BusinessAttribute::class),
             BelongsToMany::make('Business Attributes', 'optionalAttributes', OptionalAttribute::class)
                 ->fields(function () {
                     return [

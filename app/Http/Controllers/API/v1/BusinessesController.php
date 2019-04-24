@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers\API\v1;
 
-use App\Rules\LatLng;
 use App\Models\Business;
-use App\Models\BusinessReview;
-use Elasticsearch\Client;
 use Illuminate\Http\Request;
+use App\Models\BusinessReview;
 use App\Http\Controllers\Controller;
 use App\Services\Api\BusinessService;
-use App\Elastic\Rules\AggregationRule;
-use App\Http\Resources\BusinessResource;
-use App\Elastic\Rules\AttributesCountRule;
-use App\Http\Requests\Api\Businesses\BookmarkBusiness;
-use App\Http\Requests\Api\Businesses\StoreBusiness;
-use App\Http\Requests\Api\Businesses\UpdateBusiness;
-use Elasticsearch\ClientBuilder;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\BusinessResource;
+use App\Http\Requests\Api\Businesses\UpdateBusiness;
+use App\Http\Requests\Api\Businesses\StoreBusiness;
+use App\Http\Requests\Api\Businesses\BookmarkBusiness;
+use App\Models\BusinessPost;
+use Zttp\Zttp;
+use Elasticsearch\ClientBuilder;
 
 class BusinessesController extends Controller
 {
@@ -42,64 +40,68 @@ class BusinessesController extends Controller
      *  )
      * @return mixed
      */
-    public function geoJson() {
-        // 3min Lavavel 5.7
-        $boundParts = explode(',', request('bounds'));
-	if(count($boundParts) != 4) {
-		$fileToDownload = config('filesystems.geojson_path');
-		return response()->download(storage_path($fileToDownload));
-	}
+    public function geoJson(Request $request)
+    {
+        [$left, $bottom, $right, $top] = explode(',', $request->bounds);
 
-
-        cache(['bounds'.request('id') => request('bounds')], 3);
-        [$left, $bottom, $right, $top] = $boundParts;
-        
-        $builder = Business::search('*')->whereGeoBoundingBox(
-            'location',
-            ['top_left' => [(float)$left, (float)$top],'bottom_right' => [(float)$right, (float)$bottom]]
-        );
-        
-        $businessCount = $builder->count();
-        
-        // 3min Lavavel 5.7
-        cache(['business_count'.request('id') => $businessCount], 3);
-
-        if ($builder->count() == 0) {
-            $data['type'] = 'FeatureCollection';
-            $data['features'][] = ['geometry' => ['coordinates' => []]];
-            return response()->json($data);
-        }
-
-        // if businesses > LIMIT, file will be downloaded
-        if ($builder->count() > Business::LIMIT) {
-            $data = json_decode(
-                file_get_contents(storage_path(config('filesystems.geojson_path'))),
-                true
-            );
-
-            $data['features'] = collect($data['features'])->filter(function ($item) use ($bottom, $left, $top, $right) {
-                return \HelperServiceProvider::inBounds($item['geometry']['coordinates'], $left, $bottom, $right, $top);
-            })->values();
-
-            return response()->json($data);
-        }
-        
-        $businesses = $builder->take(Business::LIMIT)->get();
+        $businesses = ClientBuilder::create()
+            ->setHosts(config('scout_elastic.client.hosts'))
+            ->build()->search([
+                'index' => 'business',
+                'type' => 'businesses',
+                'body' => [
+                    'from' => 0,
+                    'size' => Business::LIMIT,
+                    'query' => [
+                        'bool' => [
+                            'filter' => [
+                                'geo_bounding_box' => [
+                                    'location' => [
+                                        'top_left' => [
+                                            'lat' => (float)$top,
+                                            'lon' => (float)$left,
+                                        ],
+                                        "bottom_right" => [
+                                            'lat' => (float)$bottom,
+                                            'lon' => (float)$right,
+                                        ],
+                                    ],
+                                    'type' => 'indexed',
+                                ],
+                            ]
+                        ]
+                    ]
+                ],
+            ]);
 
         $data['type'] = 'FeatureCollection';
-
-        foreach ($businesses as $business) {
-            $feature['type'] = 'Feature';
-            $feature['geometry']['type'] = 'Point';
-            $feature['geometry']['coordinates'] = [$business->lng, $business->lat];
-            $feature['properties']['name'] ="<a href=\"/dashboard/resources/businesses/{$business->id}\">{$business->name}</a>";
-            $data['features'][] = $feature;
-        }
+        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) {
+            // 3min Lavavel 5.7
+            cache(['business_builder'.request('id') => $businesses], 3);
+            cache(['business_count'.request('id') => $businesses->count()], 3);
+            cache(['business_ids'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
+            cache(['review_count'.request('id') => $businesses->sum('_source.total_reviews')], 3);
+            cache(['post_count'.request('id') => $businesses->sum('_source.total_posts')], 3);
+            cache(['categories'.request('id') => $businesses->sum('_source.total_posts')], 3);
+        })->map(function ($business) {
+            $business = $business['_source'];
+            return [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [$business['location']['lon'], $business['location']['lat']],
+                ],
+                'properties' => [
+                    'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
+                ],
+            ];
+        });
 
         return response()->json($data);
     }
 
-    public function geoJsonByBisinessID($id) {
+    public function geoJsonByBisinessID($id)
+    {
         $business = Business::find($id);
         
         $result = [
@@ -124,7 +126,8 @@ class BusinessesController extends Controller
         return response()->json($result);
     }
 
-    public function getReviewsDatatable(Request $request, $business_id) {
+    public function getReviewsDatatable(Request $request, $business_id)
+    {
         $reviews = Business::find($business_id)->reviews;
         $recordsTotal = count($reviews);
         
@@ -134,14 +137,13 @@ class BusinessesController extends Controller
         
         $html = "<div class=\"row\">\n";
         
-        foreach ($reviews as $key=>$review)
-        {
+        foreach ($reviews as $key=>$review) {
             // If it is not requested to view all
-            if($length != -1){
-                if($key < $start){
+            if ($length != -1) {
+                if ($key < $start) {
                     continue;
                 }
-                if($key >= ($start + $length)){
+                if ($key >= ($start + $length)) {
                     break;
                 }
             }
@@ -152,16 +154,16 @@ class BusinessesController extends Controller
                                 <div class=\"card-body\">
                                     <div class=\"review-images-holder\">
             ";
-                                        foreach($review->images as $image){
-                                            if($postImage->path){
-                                                $html .= "<div class=\"float-left p-2\">
+            foreach ($review->images as $image) {
+                if ($postImage->path) {
+                    $html .= "<div class=\"float-left p-2\">
                                                     {{-- <img style='max-width: 100px;' src=\"".url(Storage::disk('s3')->url($image->path))."\" alt=\"\"> --}}
                                                     <div style=\"background-image: url(".Storage::disk('s3')->url($image->path).")\" class=\"review-image\" />
                                                 </div>";
-                                            }
-                                            else
-                                                $html .= "&nbsp;";
-                                        }
+                } else {
+                    $html .= "&nbsp;";
+                }
+            }
             $html .= "
                                     </div>
                                     <div class=\"clearfix\"></div>
@@ -171,9 +173,9 @@ class BusinessesController extends Controller
 				    </p>
                                     <div class=\"review-keywords-holder\">
             ";
-                                        foreach($review->keywords as $keyword){
-                                            $html .= "<div class=\"float-left p-2 card-items\">".$keyword->keyword."</div>";
-                                        }
+            foreach ($review->keywords as $keyword) {
+                $html .= "<div class=\"float-left p-2 card-items\">".$keyword->keyword."</div>";
+            }
             $html .= "
                                     </div>
                                     <div class=\"clearfix\"></div>
@@ -200,7 +202,8 @@ class BusinessesController extends Controller
         return response()->json($result);
     }
  
-    public function getPostImagesDatatable(Request $request, $business_id) {
+    public function getPostImagesDatatable(Request $request, $business_id)
+    {
         $postImages = Business::find($business_id)->images;
         $recordsTotal = count($postImages);
         
@@ -210,14 +213,13 @@ class BusinessesController extends Controller
         
         $html = "<div class=\"row\">\n";
         
-        foreach ($postImages as $key=>$postImage)
-        {
+        foreach ($postImages as $key=>$postImage) {
             // If it is not requested to view all
-            if($length != -1){
-                if($key < $start){
+            if ($length != -1) {
+                if ($key < $start) {
                     continue;
                 }
-                if($key >= ($start + $length)){
+                if ($key >= ($start + $length)) {
                     break;
                 }
             }
@@ -225,16 +227,16 @@ class BusinessesController extends Controller
             $html .= "
                 <div class=\"col-sm-3 mb-2 text-center \">
             ";
-                    if($postImage->path){
-                        $html .= "
+            if ($postImage->path) {
+                $html .= "
                             <a class=\"popup-img-btn\" href=\"#\">
                                 <input type=\"hidden\" class=\"img-src\" data-src=\"". Storage::disk('s3')->url($postImage->path) ."\">
                                 <div style=\"border:1px solid black; background-image: url(". Storage::disk('s3')->url($postImage->path) .")\" class=\"post-image\" ></div>
                             </a>
                         ";
-                    }else{
-                        $html .= "&nbsp;";
-                    }
+            } else {
+                $html .= "&nbsp;";
+            }
             $html .= "
                 </div>
             ";
@@ -256,74 +258,7 @@ class BusinessesController extends Controller
         
         return response()->json($result);
     }
-
-    /**
-     *  @OA\Get(
-     *     path="/api/v1/businesses/stats",
-     *     summary="Get business stats",
-     *     @OA\Parameter(
-     *         name="top_left",
-     *         in="query",
-     *         description="Top Left of location (GPS)",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="float"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="bottom_right",
-     *         in="query",
-     *         description="Bottom right of location (GPS)",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="float"
-     *         )
-     *     ),
-     *     @OA\Response(response="200", description="Stats data"),
-     *  )
-     * @param Request $request
-     * @param Client $elasticClient
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Illuminate\Validation\ValidationException
-     * @throws \Throwable
-     */
-    public function stats(Request $request, Client $elasticClient)
-    {
-        $this->validate($request, [
-            'top_left'     => ['required', new LatLng],
-            'bottom_right' => ['required', new LatLng]
-        ]);
-
-        $topLeft     = $request->get('top_left');
-        $bottomRight = $request->get('bottom_right');
-
-        // TODO: should there be a similar check for lng values?
-        // TODO: what happens (in extreme case) when search box is around where the Equator crosses the International Date Line?
-        if ($topLeft['lat'] <= $bottomRight['lat']) {
-            return response()->json([
-                'message' => 'The given data is invalid'
-            ], 422);
-        }
-
-	@session_start();
-	$_SESSION['last_biz_map_query'] = array('top_left'=>['lat'=>$topLeft['lat'], 'lon'=>$topLeft['lng']], 'bottom_right'=>['lat'=>$bottomRight['lat'], 'lon'=>$bottomRight['lng']]);
-        
-        $totalBusinesses = Business::count();
-        $totalReviews = BusinessReview::count();
-
-        //$businessReviewImages = BusinessReview::leftJoin('business_review_images as t2', 'business_reviews.id', '=', 't2.business_review_id')->whereNotNull('t2.id')->get();
-        $totalImages = 0;//count($businessReviewImages);
-
-        $attributes = $elasticClient->search(AttributesCountRule::buildRule($topLeft, $bottomRight));
-
-        return response()->json([
-            'totalBusinesses' => $totalBusinesses,
-            'totalImages'     => $totalImages,
-            'totalReviews'    => $totalReviews,
-            'attributes'      => view('partials.attributes', ['attributes' => $attributes['aggregations']])->render()
-        ]);
-    }
-
+ 
     /**
      *  @OA\Get(
      *     path="/api/v1/businesses/{id}",
@@ -340,16 +275,14 @@ class BusinessesController extends Controller
         // Total reviews
         $totalReviews = BusinessReview::where('business_id', $business->id)->get();
         
-        if(count($totalReviews) == 0){
+        if (count($totalReviews) == 0) {
             $score_breakdown = array(
                 'low'       => 0,
                 'medium'    => 0,
                 'high'      => 0,
                 'top'       => 0,
             );
-        }
-        else
-        {
+        } else {
             // Calc low
             $lowBusinessReviews = BusinessReview::where('business_id', $business->id)->where('score', '<=', 25)->get();
             $lowPercent = count($lowBusinessReviews) / count($totalReviews) * 100;
@@ -372,7 +305,6 @@ class BusinessesController extends Controller
                 'high'      => $highPercent,
                 'top'       => $topPercent,
             );
-            
         }
         
         $business->score_breakdown = $score_breakdown;
