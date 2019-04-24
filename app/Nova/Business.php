@@ -67,7 +67,7 @@ class Business extends Resource
         if (cache('business_count'.auth()->id()) == 0) {
             return $query->where('id', 0); // no result
         }
-        
+
         if ($ids = cache('business_ids'.auth()->id())) {
             $query->whereIn('businesses.id', json_decode($ids, true));
         }
@@ -160,6 +160,7 @@ class Business extends Resource
 //            ]),
             HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
             HasMany::make('Reviews', 'reviews', BusinessReview::class),
+
             BelongsToMany::make('Business Attributes', 'optionalAttributes', OptionalAttribute::class)
                 ->fields(function () {
                     return [

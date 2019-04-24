@@ -28620,7 +28620,7 @@ var bootstrap = __webpack_require__(7);
 __webpack_require__(4);
 var DataTable = __webpack_require__(4);
 __WEBPACK_IMPORTED_MODULE_0_jquery___default()(document).ready(function ($) {
-    console.log('bsumm');
+
     $("body").on("click", ".popup-img-btn", function (e) {
         e.preventDefault();
 

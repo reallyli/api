@@ -77,7 +77,7 @@ paths:
   /api/v1/sms/verify:
     post:
       summary: 'Post a 5 digit verification PIN, Headers MUST contain the authorization bearer token.'
-      operationId: 'App\Http\Controllers\API\v1\Authentication\VerificationController::verifySms'
+      operationId: 'App\Http\Controllers\API\v1\Authentication\VerificationController::verifySMS'
       requestBody:
         content:
           application/json:
@@ -392,6 +392,28 @@ paths:
       responses:
         200:
           description: 'Geo Data JSON filestream'
+  /api/v1/businesses/stats:
+    get:
+      summary: 'Get business stats'
+      operationId: 'App\Http\Controllers\API\v1\BusinessesController::stats'
+      parameters:
+        -
+          name: top_left
+          in: query
+          description: 'Top Left of location (GPS)'
+          required: true
+          schema:
+            type: float
+        -
+          name: bottom_right
+          in: query
+          description: 'Bottom right of location (GPS)'
+          required: true
+          schema:
+            type: float
+      responses:
+        200:
+          description: 'Stats data'
   '/api/v1/businesses/{id}':
     get:
       summary: 'Get a single business by ID'
