@@ -4,7 +4,7 @@ const bootstrap = require( 'bootstrap' );
 require( 'datatables.net' );
 const DataTable = require( 'datatables.net' );
 $(document).ready(function($){
-    console.log('bsumm');
+
     $("body").on("click", ".popup-img-btn", function(e){
         e.preventDefault();
 

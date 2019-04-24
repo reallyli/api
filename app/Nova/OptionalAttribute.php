@@ -41,10 +41,10 @@ class OptionalAttribute extends Resource
     {
         return [
             Text::make('name'),
-            Image::make('image')->disk('s3'),
-            Text::make('Description', 'pivot.description')
-                ->hideWhenCreating()
-                ->hideFromDetail(),
+//            Image::make('image')->disk('s3'),
+//            Text::make('Description', 'pivot.description')
+//                ->hideWhenCreating()
+//                ->hideFromDetail(),
         ];
     }
 
@@ -90,5 +90,20 @@ class OptionalAttribute extends Resource
     public function actions(Request $request)
     {
         return [];
+    }
+
+    public static function label()
+    {
+        return __('Business Attributes');
+    }
+
+    /**
+     * Get the displayable singular label of the resource.
+     *
+     * @return string
+     */
+    public static function singularLabel()
+    {
+        return __('Business Attributes');
     }
 }
