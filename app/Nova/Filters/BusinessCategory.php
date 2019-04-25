@@ -34,7 +34,7 @@ class BusinessCategory extends Filter
     {
         $categories = [];
 
-        if ($businesses = cache('business_builder'.auth()->id())) {
+        if ($businesses = cache('businessBuilder'.auth()->id())) {
             // a
             // a-a
             // a-a-a
@@ -54,6 +54,12 @@ class BusinessCategory extends Filter
                 return substr_count($category['name'], '-') > 4 ? true : ($categories[$category['name']] = $category['id']) && false;
             });
         }
+
+        $previousCategories = json_decode(cache('categories'.auth()->id()), true);
+
+        $categories = array_unique((array) $previousCategories + $categories);
+
+        cache(['categories'.auth()->id() =>  json_encode($categories)], 3);
 
         return $categories;
     }

@@ -5,16 +5,15 @@ namespace App\Http\Controllers\API\v1;
 use App\Models\Business;
 use Illuminate\Http\Request;
 use App\Models\BusinessReview;
+use Elasticsearch\ClientBuilder;
 use App\Http\Controllers\Controller;
 use App\Services\Api\BusinessService;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\BusinessResource;
-use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use App\Http\Requests\Api\Businesses\StoreBusiness;
+use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use App\Http\Requests\Api\Businesses\BookmarkBusiness;
-use App\Models\BusinessPost;
-use Zttp\Zttp;
-use Elasticsearch\ClientBuilder;
+use App\Elastic\Configurators\Business as BusinessConfigurat5or;
 
 class BusinessesController extends Controller
 {
@@ -38,53 +37,75 @@ class BusinessesController extends Controller
      *     summary="Get GEO Json for businesses",
      *     @OA\Response(response="200", description="Geo Data JSON filestream"),
      *  )
-     * @return mixed
+     * @return array
      */
     public function geoJson(Request $request)
     {
-        [$left, $bottom, $right, $top] = explode(',', $request->bounds);
-
         $businesses = ClientBuilder::create()
             ->setHosts(config('scout_elastic.client.hosts'))
-            ->build()->search([
-                'index' => 'business',
-                'type' => 'businesses',
-                'body' => [
-                    'from' => 0,
-                    'size' => Business::LIMIT,
-                    'query' => [
-                        'bool' => [
-                            'filter' => [
-                                'geo_bounding_box' => [
-                                    'location' => [
-                                        'top_left' => [
-                                            'lat' => (float)$top,
-                                            'lon' => (float)$left,
-                                        ],
-                                        "bottom_right" => [
-                                            'lat' => (float)$bottom,
-                                            'lon' => (float)$right,
-                                        ],
-                                    ],
-                                    'type' => 'indexed',
-                                ],
-                            ]
-                        ]
-                    ]
-                ],
-            ]);
-
+            ->build()
+            ->search($this->getParams());
+        
         $data['type'] = 'FeatureCollection';
-        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) {
+        $data['size'] = Business::LIMIT;
+
+        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) use (&$data) {
             // 3min Lavavel 5.7
-            cache(['business_builder'.request('id') => $businesses], 3);
-            cache(['business_count'.request('id') => $businesses->count()], 3);
-            cache(['business_ids'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
-            cache(['review_count'.request('id') => $businesses->sum('_source.total_reviews')], 3);
-            cache(['post_count'.request('id') => $businesses->sum('_source.total_posts')], 3);
-            cache(['categories'.request('id') => $businesses->sum('_source.total_posts')], 3);
-        })->map(function ($business) {
+            cache(['businessBuilder'.request('id') => $businesses], 3);
+            cache(['businessIds'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
+            cache(['businessTotal'.request('id') => $businesses->count()], 3);
+            cache(['categories'.request('id') =>  null], 3);
+
+            $data['businessTotal'] = $businesses->count();
+            $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
+            $data['postTotal'] = $businesses->sum('_source.total_posts');
+        })->map(function ($business) use (&$data) {
+            $data['lastBusinessId'] = $business['_id'];
+
             $business = $business['_source'];
+
+            return [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [$business['location']['lon'], $business['location']['lat']],
+                ],
+                'properties' => [
+                    'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
+                ],
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/nova-vendor/mapbox/business-draw",
+     *     summary="Fetch GEO Json for businesses",
+     *     @OA\Response(response="200", description="Geo Data JSON filestream"),
+     *  )
+     * @return array
+     */
+    public function fetchJson(Request $request)
+    {
+        $businesses = ClientBuilder::create()
+            ->setHosts(config('scout_elastic.client.hosts'))
+            ->build()->search($this->getParams($request->business_id));
+
+        $data['size'] = Business::LIMIT;
+        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) use (&$data) {
+            cache(['businessBuilder'.request('id') => $businesses], 3);
+            cache(['businessIds'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
+
+            $data['businessTotal'] = $businesses->count();
+            $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
+            $data['postTotal'] = $businesses->sum('_source.total_posts');
+        })->map(function ($business) use (&$data) {
+            $data['lastBusinessId'] = $business['_id'];
+
+            $business = $business['_source'];
+            
             return [
                 'type' => 'Feature',
                 'geometry' => [
@@ -506,5 +527,51 @@ class BusinessesController extends Controller
             $this->sendResponse([
                 'message' => 'Bookmark successfully created!',
             ], 200);
+    }
+
+    public function getParams($id = 0)
+    {
+        [$left, $bottom, $right, $top] = explode(',', request()->bounds);
+
+        return [
+            'index' => (new BusinessConfigurat5or)->getName(),
+            'type' => 'businesses',
+            'body' => [
+                'from' => 0,
+                'size' => Business::LIMIT,
+                'sort'=> [
+                    [
+                        'id'=> [
+                            'order'=> 'asc'
+                        ]
+                    ]
+                ],
+                'query' => [
+                    'bool' => [
+                        'must'=> [
+                            'range'=> [
+                                'id'=> [
+                                    'gt'=> $id
+                                ]
+                            ]
+                        ],
+                        'filter' => [
+                            'geo_bounding_box' => [
+                                'location' => [
+                                    'top_left' => [
+                                        'lat' => (float)$top,
+                                        'lon' => (float)$left,
+                                    ],
+                                    "bottom_right" => [
+                                        'lat' => (float)$bottom,
+                                        'lon' => (float)$right,
+                                    ],
+                                ],
+                            ],
+                        ]
+                    ]
+                ]
+            ],
+        ];
     }
 }
