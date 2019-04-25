@@ -333,6 +333,13 @@ class Business extends Model
         return $this->hasMany(BusinessContact::class);
     }
 
+    public function working_hours()
+    {
+        return $this->hasMany(BusinessWorkingHours::class)
+            ->orderBy('day')
+            ->orderBy('start_time');
+    }
+
     public function categoriesExists()
     {
         return $this->hasManyExists(BusinessCategory::class);
