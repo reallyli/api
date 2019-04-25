@@ -35592,6 +35592,8 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 //
 //
 //
+//
+//
 
 
 
@@ -35628,6 +35630,19 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
         this.createMap();
 
         this.index = this.getResourceIndex(this.$parent);
+    },
+
+
+    computed: {
+        businessTotalOnMap: function businessTotalOnMap() {
+            return this.formatNumber(this.businessTotal);
+        },
+        reviewTotalOnMap: function reviewTotalOnMap() {
+            return this.formatNumber(this.reviewTotal);
+        },
+        imageTotalOnMap: function imageTotalOnMap() {
+            return this.formatNumber(this.imageTotal);
+        }
     },
 
     methods: {
@@ -35982,7 +35997,10 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             }
 
             return fetchData;
-        }()
+        }(),
+        formatNumber: function formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+        }
     }
 });
 
@@ -44650,19 +44668,23 @@ var render = function() {
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total businesses:")))])]),
             _vm._v(" "),
             _c("td", { staticClass: "pr-2" }, [
-              _vm._v(_vm._s(_vm.businessTotal))
+              _vm._v(_vm._s(_vm.businessTotalOnMap))
             ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total reviews:")))])]),
             _vm._v(" "),
             _c("td", { staticClass: "pr-2", attrs: { id: "reviewTotal" } }, [
-              _vm._v(_vm._s(_vm.reviewTotal))
+              _vm._v(
+                "\n                    " +
+                  _vm._s(_vm.reviewTotalOnMap) +
+                  "\n                "
+              )
             ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total images:")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "imageTotal" } }, [
-              _vm._v(_vm._s(_vm.imageTotal))
+              _vm._v(_vm._s(_vm.imageTotalOnMap))
             ])
           ])
         ])

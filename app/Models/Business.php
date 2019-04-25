@@ -231,7 +231,7 @@ class Business extends Model
      */
     public function getTotalAttributesAttribute()
     {
-        return isset($this->relations['attributes']) ? count($this->relations['attributes']) : 0;
+        return $this->attributes()->count();
     }
 
     /**

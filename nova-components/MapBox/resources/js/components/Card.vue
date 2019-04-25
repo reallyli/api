@@ -7,15 +7,17 @@
                     <td>
                         <b>{{ __("Total businesses:") }}</b>
                     </td>
-                    <td class="pr-2">{{ businessTotal }}</td>
+                    <td class="pr-2">{{ businessTotalOnMap }}</td>
                     <td>
                         <b>{{ __("Total reviews:") }}</b>
                     </td>
-                    <td id="reviewTotal" class="pr-2">{{ reviewTotal }}</td>
+                    <td id="reviewTotal" class="pr-2">
+                        {{ reviewTotalOnMap }}
+                    </td>
                     <td>
                         <b>{{ __("Total images:") }}</b>
                     </td>
-                    <td id="imageTotal">{{ imageTotal }}</td>
+                    <td id="imageTotal">{{ imageTotalOnMap }}</td>
                 </tr>
             </table>
         </div>
@@ -60,6 +62,21 @@ export default {
 
         this.index = this.getResourceIndex(this.$parent);
     },
+
+    computed: {
+        businessTotalOnMap() {
+            return this.formatNumber(this.businessTotal);
+        },
+
+        reviewTotalOnMap() {
+            return this.formatNumber(this.reviewTotal);
+        },
+
+        imageTotalOnMap() {
+            return this.formatNumber(this.imageTotal);
+        }
+    },
+
     methods: {
         setCookie(name, value, hours = 1) {
             Cookie.set(name, value, { expires: 1 });
@@ -367,6 +384,10 @@ export default {
                     this.searching =
                         response.data["businessTotal"] == this.size;
                 });
+        },
+
+        formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
         }
     }
 };
