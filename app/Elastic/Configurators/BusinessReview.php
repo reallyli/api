@@ -9,6 +9,8 @@ class BusinessReview extends IndexConfigurator
 {
     use Migratable;
 
+    // protected $name = 'review_200000';
+
     /**
      * @var array
      */

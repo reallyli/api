@@ -64,11 +64,11 @@ class Business extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        if (cache('business_count'.auth()->id()) == 0) {
+        if (cache('businessTotal'.auth()->id()) == 0) {
             return $query->where('id', 0); // no result
         }
         
-        if ($ids = cache('business_ids'.auth()->id())) {
+        if ($ids = cache('businessIds'.auth()->id())) {
             $query->whereIn('businesses.id', json_decode($ids, true));
         }
 

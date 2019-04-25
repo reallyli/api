@@ -9,6 +9,8 @@ class BusinessPost extends IndexConfigurator
 {
     use Migratable;
 
+    // protected $name = 'post_200000';
+    
     /**
      * @var array
      */
@@ -26,16 +28,16 @@ class BusinessPost extends IndexConfigurator
     protected $defaultMapping = [
         'properties' => [
             'id'          => [
-                'type' => 'keyword'
+                'type' => 'text'
             ],
             'business_id' => [
-                'type' => 'keyword'
+                'type' => 'integer'
             ],
             'user_id'     => [
-                'type' => 'long'
+                'type' => 'integer'
             ],
             'type'        => [
-                'type' => 'keyword'
+                'type' => 'text'
             ],
             'location'    => [
                 'type'  => 'geo_point',

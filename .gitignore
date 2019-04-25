@@ -36,3 +36,5 @@ docker-compose.yml
 *.*~
 
 .work
+.idea
+.kibana

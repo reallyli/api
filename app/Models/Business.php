@@ -20,7 +20,7 @@ class Business extends Model
     protected $hidden  = ['internal_score', 'opening_hours_info'];
 
     protected $with = ['bookmark'];
-
+    
     /**
      * Get the route key for the model.
      *

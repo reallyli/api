@@ -9,6 +9,12 @@ class Business extends IndexConfigurator
 {
     use Migratable;
 
+    // < elasticsearch 7.0
+    // default index: model name
+    // default type: table name
+    // set up custom index name
+    // protected $name = 'business_200000';
+
     /**
      * @var array
      */
