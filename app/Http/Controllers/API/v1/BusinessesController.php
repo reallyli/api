@@ -93,7 +93,9 @@ class BusinessesController extends Controller
             ->setHosts(config('scout_elastic.client.hosts'))
             ->build()->search($this->getParams($request->business_id));
 
+        $data['type'] = 'FeatureCollection';
         $data['size'] = Business::LIMIT;
+        
         $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) use (&$data) {
             cache(['businessBuilder'.request('id') => $businesses], 3);
             cache(['businessIds'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);

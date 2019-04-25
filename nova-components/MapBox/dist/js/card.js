@@ -35592,6 +35592,8 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 //
 //
 //
+//
+//
 
 
 
@@ -35611,23 +35613,33 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             index: "",
             size: 0,
             iControl: 0,
-            attributes: "",
-            mapData: {
-                type: "FeatureCollection",
-                features: []
-            },
-            businesses: "",
+            mapData: {},
             imageTotal: 0,
+            attributes: "",
+            businesses: "",
             reviewTotal: 0,
+            businessTotal: 0,
             searching: false,
-            lastBusinessId: 0,
-            businessTotal: 0
+            lastBusinessId: 0
         };
     },
     mounted: function mounted() {
         this.createMap();
 
         this.index = this.getResourceIndex(this.$parent);
+    },
+
+
+    computed: {
+        businessTotalOnMap: function businessTotalOnMap() {
+            return this.formatNumber(this.businessTotal);
+        },
+        reviewTotalOnMap: function reviewTotalOnMap() {
+            return this.formatNumber(this.reviewTotal);
+        },
+        imageTotalOnMap: function imageTotalOnMap() {
+            return this.formatNumber(this.imageTotal);
+        }
     },
 
     methods: {
@@ -35908,7 +35920,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
         addMapData: function addMapData(data) {
             data = typeof data == "undefined" ? [] : data;
 
-            this.mapData.features = [].concat(_toConsumableArray(this.mapData.features), _toConsumableArray(data));
+            this.mapData.features = [].concat(_toConsumableArray(this.mapData.features), _toConsumableArray(data.features));
 
             return this.mapData;
         },
@@ -35935,6 +35947,10 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                                 }
 
                             case 5:
+
+                                this.map.getSource("places").setData(this.mapData);
+
+                            case 6:
                             case "end":
                                 return _context4.stop();
                         }
@@ -35958,7 +35974,12 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                             case 0:
                                 _context5.next = 2;
                                 return Nova.request().get("/nova-vendor/mapbox/business-draw?bounds=" + this.map.getBounds().toArray() + "&business_id=" + this.lastBusinessId).then(function (response) {
-                                    _this3.map.getSource("places").setData(_this3.addMapData(response.data["features"]));
+                                    // show items on map every 5 times
+                                    if (count % 5 == 0) {
+                                        _this3.map.getSource("places").setData(_this3.addMapData(response.data));
+                                    } else {
+                                        _this3.addMapData(response.data);
+                                    }
 
                                     _this3.businessTotal += response.data["businessTotal"];
                                     _this3.reviewTotal += response.data["reviewTotal"];
@@ -35982,7 +36003,10 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             }
 
             return fetchData;
-        }()
+        }(),
+        formatNumber: function formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+        }
     }
 });
 
@@ -44650,19 +44674,23 @@ var render = function() {
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total businesses:")))])]),
             _vm._v(" "),
             _c("td", { staticClass: "pr-2" }, [
-              _vm._v(_vm._s(_vm.businessTotal))
+              _vm._v(_vm._s(_vm.businessTotalOnMap))
             ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total reviews:")))])]),
             _vm._v(" "),
             _c("td", { staticClass: "pr-2", attrs: { id: "reviewTotal" } }, [
-              _vm._v(_vm._s(_vm.reviewTotal))
+              _vm._v(
+                "\n                    " +
+                  _vm._s(_vm.reviewTotalOnMap) +
+                  "\n                "
+              )
             ]),
             _vm._v(" "),
             _c("td", [_c("b", [_vm._v(_vm._s(_vm.__("Total images:")))])]),
             _vm._v(" "),
             _c("td", { attrs: { id: "imageTotal" } }, [
-              _vm._v(_vm._s(_vm.imageTotal))
+              _vm._v(_vm._s(_vm.imageTotalOnMap))
             ])
           ])
         ])

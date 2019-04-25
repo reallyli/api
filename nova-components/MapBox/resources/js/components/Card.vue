@@ -7,15 +7,17 @@
                     <td>
                         <b>{{ __("Total businesses:") }}</b>
                     </td>
-                    <td class="pr-2">{{ businessTotal }}</td>
+                    <td class="pr-2">{{ businessTotalOnMap }}</td>
                     <td>
                         <b>{{ __("Total reviews:") }}</b>
                     </td>
-                    <td id="reviewTotal" class="pr-2">{{ reviewTotal }}</td>
+                    <td id="reviewTotal" class="pr-2">
+                        {{ reviewTotalOnMap }}
+                    </td>
                     <td>
                         <b>{{ __("Total images:") }}</b>
                     </td>
-                    <td id="imageTotal">{{ imageTotal }}</td>
+                    <td id="imageTotal">{{ imageTotalOnMap }}</td>
                 </tr>
             </table>
         </div>
@@ -42,17 +44,14 @@ export default {
             index: "",
             size: 0,
             iControl: 0,
-            attributes: "",
-            mapData: {
-                type: "FeatureCollection",
-                features: []
-            },
-            businesses: "",
+            mapData: {},
             imageTotal: 0,
+            attributes: "",
+            businesses: "",
             reviewTotal: 0,
+            businessTotal: 0,
             searching: false,
-            lastBusinessId: 0,
-            businessTotal: 0
+            lastBusinessId: 0
         };
     },
     mounted() {
@@ -60,13 +59,30 @@ export default {
 
         this.index = this.getResourceIndex(this.$parent);
     },
+
+    computed: {
+        businessTotalOnMap() {
+            return this.formatNumber(this.businessTotal);
+        },
+
+        reviewTotalOnMap() {
+            return this.formatNumber(this.reviewTotal);
+        },
+
+        imageTotalOnMap() {
+            return this.formatNumber(this.imageTotal);
+        }
+    },
+
     methods: {
         setCookie(name, value, hours = 1) {
             Cookie.set(name, value, { expires: 1 });
         },
+
         getCookie(name) {
             return Cookie.get(name);
         },
+
         getCenter() {
             if (!this.getCookie("map_position")) {
                 return {
@@ -80,11 +96,13 @@ export default {
 
             return JSON.parse(this.getCookie("map_position"));
         },
+
         getGeoJsonUrl() {
             return `/api/v1/businesses/geo-json?bounds=${this.map
                 .getBounds()
                 .toArray()}&id=${Nova.config.userId}`;
         },
+
         createMap() {
             mapboxgl.accessToken = API_KEY;
 
@@ -333,7 +351,10 @@ export default {
         addMapData(data) {
             data = typeof data == "undefined" ? [] : data;
 
-            this.mapData.features = [...this.mapData.features, ...data];
+            this.mapData.features = [
+                ...this.mapData.features,
+                ...data.features
+            ];
 
             return this.mapData;
         },
@@ -344,6 +365,8 @@ export default {
                 await this.fetchData(count);
                 count++;
             } while (this.searching);
+
+            this.map.getSource("places").setData(this.mapData);
         },
 
         async fetchData(count) {
@@ -354,9 +377,14 @@ export default {
                         .toArray()}&business_id=${this.lastBusinessId}`
                 )
                 .then(response => {
-                    this.map
-                        .getSource("places")
-                        .setData(this.addMapData(response.data["features"]));
+                    // show items on map every 5 times
+                    if (count % 5 == 0) {
+                        this.map
+                            .getSource("places")
+                            .setData(this.addMapData(response.data));
+                    } else {
+                        this.addMapData(response.data);
+                    }
 
                     this.businessTotal += response.data["businessTotal"];
                     this.reviewTotal += response.data["reviewTotal"];
@@ -367,6 +395,10 @@ export default {
                     this.searching =
                         response.data["businessTotal"] == this.size;
                 });
+        },
+
+        formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
         }
     }
 };

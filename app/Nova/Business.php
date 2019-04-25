@@ -96,7 +96,6 @@ class Business extends Resource
             ID::make('id')
                 ->hideFromIndex()
                 ->hideFromDetail(),
-            Boolean::make('Verified', 'verified'),
             Text::make('name')
                 ->asHtml()
                 ->displayUsing(function ($name) {
@@ -116,40 +115,41 @@ class Business extends Resource
                 })
                 ->hideWhenCreating()
                 ->hideWhenUpdating(),
-            Text::make('uuid')
-                ->onlyOnDetail(),
-            Text::make('bio')
-                ->hideWhenCreating()
-                ->hideFromIndex(),
             Avatar::make('Cover', 'cover_path')
                 ->disk('s3')
                 ->hideWhenCreating()
                 ->hideWhenUpdating()
                 ->hideFromDetail(),
+            Text::make('score')
+                ->onlyOnIndex()
+                ->sortable(),
+            Text::make('internal score', 'internal_score')
+                ->onlyOnIndex()
+                ->sortable(),
+            Text::make('uuid')
+                ->onlyOnDetail(),
+            Text::make('bio')
+                ->hideWhenCreating()
+                ->hideFromIndex(),
             Text::make('#reviews', 'total_reviews')
                 ->hideWhenUpdating()
                 ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#posts', 'total_posts')
+                ->hideFromDetail()
+                ->sortable(),
+            Text::make('#images', 'total_posts')
                 ->hideWhenUpdating()
                 ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#attributes', 'total_attributes')
-                ->hideWhenUpdating()
-                ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#email', 'total_email_attributes')
-                ->hideWhenUpdating()
-                ->hideWhenCreating()
-                ->hideFromDetail(),
+                ->hideFromDetail()
+                ->sortable(),
+            Boolean::make('verified'),
             Text::make('lat')
                 ->hideFromIndex()
                 ->hideFromDetail(),
             Text::make('lng')
                 ->hideFromIndex()
                 ->hideFromDetail(),
-            Image::make('Image', 'avatar')->disk('s3')
-                ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
+            // Image::make('Image', 'avatar')->disk('s3')
+            //     ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
             BelongsToMany::make('Categories', 'categories', Category::class),
             HasMany::make('DataAI Keywords', 'keywords', BusinessKeyword::class),
 //            new Panel('Posts', [
