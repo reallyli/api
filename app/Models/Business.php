@@ -20,7 +20,7 @@ class Business extends Model
     protected $hidden  = ['internal_score', 'opening_hours_info'];
 
     protected $with = ['bookmark'];
-
+    
     /**
      * Get the route key for the model.
      *
@@ -231,7 +231,7 @@ class Business extends Model
      */
     public function getTotalAttributesAttribute()
     {
-        return isset($this->relations['attributes']) ? count($this->relations['attributes']) : 0;
+        return $this->attributes()->count();
     }
 
     /**
@@ -331,6 +331,13 @@ class Business extends Model
     public function contacts()
     {
         return $this->hasMany(BusinessContact::class);
+    }
+
+    public function working_hours()
+    {
+        return $this->hasMany(BusinessWorkingHours::class)
+            ->orderBy('day')
+            ->orderBy('start_time');
     }
 
     public function categoriesExists()

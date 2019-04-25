@@ -64,11 +64,11 @@ class Business extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        if (cache('business_count'.auth()->id()) == 0) {
+        if (cache('businessTotal'.auth()->id()) == 0) {
             return $query->where('id', 0); // no result
         }
         
-        if ($ids = cache('business_ids'.auth()->id())) {
+        if ($ids = cache('businessIds'.auth()->id())) {
             $query->whereIn('businesses.id', json_decode($ids, true));
         }
 
@@ -96,7 +96,6 @@ class Business extends Resource
             ID::make('id')
                 ->hideFromIndex()
                 ->hideFromDetail(),
-            Boolean::make('Verified', 'verified'),
             Text::make('name')
                 ->asHtml()
                 ->displayUsing(function ($name) {
@@ -116,40 +115,41 @@ class Business extends Resource
                 })
                 ->hideWhenCreating()
                 ->hideWhenUpdating(),
-            Text::make('uuid')
-                ->onlyOnDetail(),
-            Text::make('bio')
-                ->hideWhenCreating()
-                ->hideFromIndex(),
             Avatar::make('Cover', 'cover_path')
                 ->disk('s3')
                 ->hideWhenCreating()
                 ->hideWhenUpdating()
                 ->hideFromDetail(),
+            Text::make('score')
+                ->onlyOnIndex()
+                ->sortable(),
+            Text::make('internal score', 'internal_score')
+                ->onlyOnIndex()
+                ->sortable(),
+            Text::make('uuid')
+                ->onlyOnDetail(),
+            Text::make('bio')
+                ->hideWhenCreating()
+                ->hideFromIndex(),
             Text::make('#reviews', 'total_reviews')
                 ->hideWhenUpdating()
                 ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#posts', 'total_posts')
+                ->hideFromDetail()
+                ->sortable(),
+            Text::make('#images', 'total_posts')
                 ->hideWhenUpdating()
                 ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#attributes', 'total_attributes')
-                ->hideWhenUpdating()
-                ->hideWhenCreating()
-                ->hideFromDetail(),
-            Text::make('#email', 'total_email_attributes')
-                ->hideWhenUpdating()
-                ->hideWhenCreating()
-                ->hideFromDetail(),
+                ->hideFromDetail()
+                ->sortable(),
+            Boolean::make('verified'),
             Text::make('lat')
                 ->hideFromIndex()
                 ->hideFromDetail(),
             Text::make('lng')
                 ->hideFromIndex()
                 ->hideFromDetail(),
-            Image::make('Image', 'avatar')->disk('s3')
-                ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
+            // Image::make('Image', 'avatar')->disk('s3')
+            //     ->creationRules('required', 'image', 'mimes:jpg,jpeg,png,gif'),
             BelongsToMany::make('Categories', 'categories', Category::class),
             HasMany::make('DataAI Keywords', 'keywords', BusinessKeyword::class),
 //            new Panel('Posts', [
@@ -158,8 +158,10 @@ class Business extends Resource
 //                    ->hideWhenCreating()
 //                    ->hideWhenUpdating(),
 //            ]),
-            HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
+            //HasMany::make('Open Hours', 'openHours', BusinessOpeningHours::class),
+            HasMany::make('Business Working Hours', 'working_hours'),
             HasMany::make('Reviews', 'reviews', BusinessReview::class),
+
             BelongsToMany::make('Business Attributes', 'optionalAttributes', OptionalAttribute::class)
                 ->fields(function () {
                     return [

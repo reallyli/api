@@ -2,25 +2,26 @@
 
 namespace App\Nova;
 
-use Laravel\Nova\Fields\Image;
-use Laravel\Nova\Fields\Text;
+use App\Models\BusinessWorkingHours;
 use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Select;
+use Michielfb\Time\Time;
 
-class OptionalAttribute extends Resource
+class BusinessWorkingHour extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = 'App\\Models\\OptionalAttribute';
+    public static $model = BusinessWorkingHours::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
      * @var string
      */
-    public static $title = 'name';
+    public static $title = 'id';
 
     /**
      * The columns that should be searched.
@@ -28,8 +29,10 @@ class OptionalAttribute extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name'
+        'id',
     ];
+
+    public static $displayInNavigation = false;
 
     /**
      * Get the fields displayed by the resource.
@@ -40,11 +43,26 @@ class OptionalAttribute extends Resource
     public function fields(Request $request)
     {
         return [
-            Text::make('name'),
-//            Image::make('image')->disk('s3'),
-//            Text::make('Description', 'pivot.description')
-//                ->hideWhenCreating()
-//                ->hideFromDetail(),
+
+            Select::make('Day')->options(
+                BusinessWorkingHours::DAYS
+            )
+                ->displayUsingLabels()
+            ->rules('required','between:0,6'),
+
+            Time::make('Start time')
+                ->help(
+                    'Example: 8:30AM'
+                )
+                ->rules('required')
+                ->format('hh:mm A'),
+
+            Time::make('End time')
+                ->help(
+                    'Example: 6:30PM'
+                )
+                ->rules('required')
+                ->format('hh:mm A'),
         ];
     }
 
@@ -92,18 +110,5 @@ class OptionalAttribute extends Resource
         return [];
     }
 
-    public static function label()
-    {
-        return __('Business Attributes');
-    }
 
-    /**
-     * Get the displayable singular label of the resource.
-     *
-     * @return string
-     */
-    public static function singularLabel()
-    {
-        return __('Business Attributes');
-    }
 }

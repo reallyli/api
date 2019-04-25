@@ -7,15 +7,17 @@
                     <td>
                         <b>{{ __("Total businesses:") }}</b>
                     </td>
-                    <td class="pr-2">{{ totalBusinesses }}</td>
+                    <td class="pr-2">{{ businessTotalOnMap }}</td>
                     <td>
                         <b>{{ __("Total reviews:") }}</b>
                     </td>
-                    <td id="totalReviews" class="pr-2">{{ totalReviews }}</td>
+                    <td id="reviewTotal" class="pr-2">
+                        {{ reviewTotalOnMap }}
+                    </td>
                     <td>
                         <b>{{ __("Total images:") }}</b>
                     </td>
-                    <td id="totalImages">{{ totalImages }}</td>
+                    <td id="imageTotal">{{ imageTotalOnMap }}</td>
                 </tr>
             </table>
         </div>
@@ -40,12 +42,19 @@ export default {
         return {
             map: null,
             index: "",
+            size: 0,
             iControl: 0,
             attributes: "",
+            mapData: {
+                type: "FeatureCollection",
+                features: []
+            },
             businesses: "",
-            totalImages: 0,
-            totalReviews: 0,
-            totalBusinesses: 0
+            imageTotal: 0,
+            reviewTotal: 0,
+            searching: false,
+            lastBusinessId: 0,
+            businessTotal: 0
         };
     },
     mounted() {
@@ -53,6 +62,21 @@ export default {
 
         this.index = this.getResourceIndex(this.$parent);
     },
+
+    computed: {
+        businessTotalOnMap() {
+            return this.formatNumber(this.businessTotal);
+        },
+
+        reviewTotalOnMap() {
+            return this.formatNumber(this.reviewTotal);
+        },
+
+        imageTotalOnMap() {
+            return this.formatNumber(this.imageTotal);
+        }
+    },
+
     methods: {
         setCookie(name, value, hours = 1) {
             Cookie.set(name, value, { expires: 1 });
@@ -76,9 +100,7 @@ export default {
         getGeoJsonUrl() {
             return `/api/v1/businesses/geo-json?bounds=${this.map
                 .getBounds()
-                .toArray()}&center=${this.map.getCenter().toArray()}&id=${
-                Nova.config.userId
-            }`;
+                .toArray()}&id=${Nova.config.userId}`;
         },
         createMap() {
             mapboxgl.accessToken = API_KEY;
@@ -102,7 +124,7 @@ export default {
 
             let map = this.map;
             map.addControl(new mapboxgl.NavigationControl());
-            map.on("load", () => {
+            map.on("load", async () => {
                 map.on("click", "clusters", function(e) {
                     var features = map.queryRenderedFeatures(e.point, {
                         layers: ["clusters"]
@@ -178,9 +200,20 @@ export default {
                     }, 500)
                 );
 
+                await Nova.request()
+                    .get(this.getGeoJsonUrl())
+                    .then(response => {
+                        this.mapData = response.data;
+                        this.businessTotal = response.data["businessTotal"];
+                        this.reviewTotal = response.data["reviewTotal"];
+                        this.imageTotal = response.data["postTotal"];
+                        this.lastBusinessId = response.data["lastBusinessId"];
+                        this.size = response.data["size"];
+                    });
+
                 map.addSource("places", {
                     type: "geojson",
-                    data: this.getGeoJsonUrl(),
+                    data: this.mapData,
                     cluster: true,
                     clusterMaxZoom: 14,
                     clusterRadius: 50
@@ -247,17 +280,28 @@ export default {
             });
         },
 
-        updateMap() {
-            this.redraw();
-
+        async updateMap() {
             // set search bounds
             this.removeControl().addControl();
 
-            setTimeout(this.updateIndexResources, 2000);
+            await this.redraw();
+
+            this.updateIndexResources();
         },
 
-        redraw() {
-            this.map.getSource("places").setData(this.getGeoJsonUrl());
+        async redraw() {
+            await Nova.request()
+                .get(this.getGeoJsonUrl())
+                .then(response => {
+                    this.mapData = response.data;
+                    this.businessTotal = response.data["businessTotal"];
+                    this.reviewTotal = response.data["reviewTotal"];
+                    this.imageTotal = response.data["postTotal"];
+                    this.lastBusinessId = response.data["lastBusinessId"];
+                    this.size = response.data["size"];
+                });
+
+            this.map.getSource("places").setData(this.mapData);
         },
 
         addControl() {
@@ -295,17 +339,55 @@ export default {
             // Call the resource updater
             this.index.getResources();
             this.index.getFilters();
-            this.updateTotals();
+
+            // if search result > this.size
+            // we should get them
+            if (this.businessTotal == this.size) {
+                this.getMapData();
+            }
         },
 
-        updateTotals() {
-            Nova.request()
-                .get("/nova-vendor/mapbox/business-totals")
-                .then(({ data }) => {
-                    this.totalBusinesses = data.totalBusinesses;
-                    this.totalReviews = data.totalReviews;
-                    this.totalImages = data.totalImages;
+        addMapData(data) {
+            data = typeof data == "undefined" ? [] : data;
+
+            this.mapData.features = [...this.mapData.features, ...data];
+
+            return this.mapData;
+        },
+
+        async getMapData() {
+            let count = 0;
+            do {
+                await this.fetchData(count);
+                count++;
+            } while (this.searching);
+        },
+
+        async fetchData(count) {
+            await Nova.request()
+                .get(
+                    `/nova-vendor/mapbox/business-draw?bounds=${this.map
+                        .getBounds()
+                        .toArray()}&business_id=${this.lastBusinessId}`
+                )
+                .then(response => {
+                    this.map
+                        .getSource("places")
+                        .setData(this.addMapData(response.data["features"]));
+
+                    this.businessTotal += response.data["businessTotal"];
+                    this.reviewTotal += response.data["reviewTotal"];
+                    this.imageTotal += response.data["postTotal"];
+                    this.lastBusinessId = response.data["lastBusinessId"];
+                    this.size = response.data["size"];
+
+                    this.searching =
+                        response.data["businessTotal"] == this.size;
                 });
+        },
+
+        formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
         }
     }
 };
