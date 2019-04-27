@@ -14,6 +14,7 @@ use App\Http\Requests\Api\Businesses\StoreBusiness;
 use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use App\Http\Requests\Api\Businesses\BookmarkBusiness;
 use App\Elastic\Configurators\Business as BusinessConfigurat5or;
+use App\Events\UpdateMap;
 
 class BusinessesController extends Controller
 {
@@ -75,6 +76,8 @@ class BusinessesController extends Controller
                 ],
             ];
         });
+
+        event(new UpdateMap);
 
         return response()->json($data);
     }

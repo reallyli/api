@@ -21,6 +21,8 @@
                 </tr>
             </table>
         </div>
+
+        <update-map></update-map>
     </card>
 </template>
 
@@ -29,6 +31,7 @@ import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as Cookie from "js-cookie";
 import queryString from "query-string";
+import UpdateMap from "./UpdateMap";
 
 import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
 import "../../../node_modules/@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -54,6 +57,9 @@ export default {
             lastBusinessId: 0
         };
     },
+
+    components: { UpdateMap },
+
     mounted() {
         this.createMap();
 
