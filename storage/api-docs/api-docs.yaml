@@ -405,14 +405,7 @@ paths:
       operationId: 'App\Http\Controllers\API\v1\BusinessesController::geoJson'
       responses:
         200:
-          description: 'Geo Data JSON filestream'
-  /nova-vendor/mapbox/business-draw:
-    get:
-      summary: 'Fetch GEO Json for businesses'
-      operationId: 'App\Http\Controllers\API\v1\BusinessesController::fetchJson'
-      responses:
-        200:
-          description: 'Geo Data JSON filestream'
+          description: 'Send geo Data JSON via websocket'
   '/api/v1/businesses/{id}':
     get:
       summary: 'Get a single business by ID'

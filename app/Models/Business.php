@@ -13,7 +13,7 @@ class Business extends Model
 {
     use Searchable, HasUuid, WithRelationsTrait, HasOpenableHours;
 
-    const LIMIT = 10000; // needs to be optimized
+    const LIMIT = 100; // needs to be optimized
 
     protected $guarded = [];
 
@@ -112,6 +112,9 @@ class Business extends Model
                     ],
                 ],
             ],
+            'categoryIds'      => [
+                'type'       => 'integer',
+            ],
             'reviews'      => [
                 'type'       => 'nested',
                 'properties' => [
@@ -137,14 +140,14 @@ class Business extends Model
             'total_reviews'   => [
                 'type' => 'long',
             ],
+            'total_posts'     => [
+                'type' => 'long',
+            ],
             'score'           => [
                 'type'  => 'integer',
             ],
             'internal_score'  => [
                 'type' => 'integer',
-            ],
-            'total_posts'     => [
-                'type' => 'long',
             ],
             'is_open' => [
                 'type'  => 'boolean',
@@ -180,9 +183,10 @@ class Business extends Model
                 'lat' => $this->lat,
                 'lon' => $this->lng,
             ],
+            'categories'          => $this->categories,
+            'categoryIds'          => $this->categoryIds,
             'total_reviews'       => $this->total_reviews,
             'total_posts'         => $this->total_posts,
-            'categories'          => $this->categories,
             'reviews'             => $this->reviews,
             'posts'               => $this->posts,
             'optional_attributes' => $this->optionalAttributes,
@@ -326,6 +330,11 @@ class Business extends Model
             ->withPivot(['relevance'])
             ->withTimestamps()
             ->orderBy('relevance', 'DESC');
+    }
+        
+    public function getCategoryIdsAttribute()
+    {
+        return $this->categories->pluck('id');
     }
     
     public function contacts()

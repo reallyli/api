@@ -152,6 +152,14 @@ Add your Twilio Account SID, Auth Token, and From Number (optional) to your conf
 ...
 ```
 
+# WebSocket
+
+You need to start websockets to send map data to the client side.
+```
+php artisan websockets:serve
+```
+
+
 # Mac Set-up
 
 ```Docker Mac

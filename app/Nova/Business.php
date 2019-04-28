@@ -64,20 +64,18 @@ class Business extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        if (cache('businessTotal'.auth()->id()) == 0) {
-            return $query->where('id', 0); // no result
-        }
-        
         if ($ids = cache('businessIds'.auth()->id())) {
             $query->whereIn('businesses.id', json_decode($ids, true));
+    
+            if (empty($request->get('orderBy'))) {
+                $query->getQuery()->orders = [];
+                $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
+            }
+    
+            return $query;
         }
-
-        if (empty($request->get('orderBy'))) {
-            $query->getQuery()->orders = [];
-            $query->orderBy(key(static::$indexDefaultOrder), reset(static::$indexDefaultOrder));
-        }
-
-        return $query;
+        
+        return; // no result
     }
 
     /**

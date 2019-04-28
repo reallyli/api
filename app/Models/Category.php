@@ -10,6 +10,8 @@ class Category extends Model
 {
     use Searchable, HasUuid;
 
+    const LIMIT = 5000;
+
     protected $fillable = ["name", "icon"];
     protected $hidden = ["uuid","deleted_at","created_at", "updated_at"];
 
@@ -39,10 +41,11 @@ class Category extends Model
         'properties' => [
             'id'                => [
                 'type'  => 'integer',
-                'index' => 'false'
+                'index' => 'true'
             ],
             'name'              => [
                 'type'   => 'text',
+                'fielddata' => true,
                 'fields' => [
                     'english' => [
                         'type'     => 'text',
@@ -53,16 +56,19 @@ class Category extends Model
                         'analyzer' => 'synonym_analyzer',
                         'index'    => 'true'
                     ],
+                    'raw' => [
+                        'type' => 'keyword',
+                    ]
                 ]
             ]
         ]
     ];
 
-
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function businesses() {
+    public function businesses()
+    {
         return
             $this->belongsToMany(Business::class, 'business_category', 'category_id')
                 ->withTimestamps();
@@ -71,7 +77,8 @@ class Category extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function users() {
+    public function users()
+    {
         return
             $this->belongsToMany(User::class);
     }

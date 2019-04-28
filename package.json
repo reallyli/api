@@ -11,6 +11,7 @@
         "build-map": "cd nova-components/Map && npm run dev",
         "build-map-prod": "cd nova-components/Map && npm run prod",
         "build-MapBox": "cd nova-components/MapBox && npm run dev",
+        "build-MapBox-watch": "cd nova-components/MapBox && npm run watch",
         "build-MapBox-prod": "cd nova-components/MapBox && npm run prod",
         "build-map-field": "cd nova-components/MapField && npm run dev",
         "build-map-field-prod": "cd nova-components/MapField && npm run prod",
@@ -34,6 +35,8 @@
         "vue": "^2.5.7"
     },
     "dependencies": {
+        "laravel-echo": "^1.5.3",
+        "pusher-js": "^4.4.0",
         "webpack": "^3.3.0",
         "webpack-cli": "^3.3.0"
     }
