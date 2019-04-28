@@ -45,6 +45,7 @@ class Category extends Model
             ],
             'name'              => [
                 'type'   => 'text',
+                'fielddata' => true,
                 'fields' => [
                     'english' => [
                         'type'     => 'text',
@@ -55,6 +56,9 @@ class Category extends Model
                         'analyzer' => 'synonym_analyzer',
                         'index'    => 'true'
                     ],
+                    'raw' => [
+                        'type' => 'keyword',
+                    ]
                 ]
             ]
         ]

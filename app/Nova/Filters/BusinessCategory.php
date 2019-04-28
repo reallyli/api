@@ -45,7 +45,6 @@ class BusinessCategory extends Filter
                 ->build()->search($this->getParams(json_decode($categoryIds, true)));
 
             collect($result['hits']['hits'])->pluck('_source.name')
-                ->sort()
                 ->filter(function ($category) use (&$categories) {
                     return strpos($category, '-') !== false ? true : ($categories[$category] = $category) && false;
                 })->filter(function ($category) use (&$categories) {
@@ -68,8 +67,14 @@ class BusinessCategory extends Filter
             'index' => 'category',
             'type' => 'categories',
             'body' => [
-                'from' => 0,
                 'size' => Category::LIMIT,
+                'sort'=> [
+                    [
+                        'name.raw'=> [
+                            'order'=> 'asc'
+                        ]
+                    ]
+                ],
                 'query' => [
                     'bool' => [
                         'filter' => [
