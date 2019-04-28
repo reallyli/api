@@ -31,7 +31,6 @@ import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as Cookie from "js-cookie";
 import queryString from "query-string";
-import UpdateMap from "./UpdateMap";
 
 import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
 import "../../../node_modules/@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -45,25 +44,47 @@ export default {
         return {
             map: null,
             index: "",
-            size: 0,
             iControl: 0,
             mapData: {},
             imageTotal: 0,
-            attributes: "",
-            businesses: "",
             reviewTotal: 0,
-            businessTotal: 0,
-            searching: false,
-            lastBusinessId: 0
+            businessTotal: 0
         };
     },
 
-    components: { UpdateMap },
-
     mounted() {
+        this.initializeMapData();
+
         this.createMap();
 
         this.index = this.getResourceIndex(this.$parent);
+
+        this.requestGeoJson();
+
+        Echo.channel(`map-data.${Nova.config.userId}`).listen(
+            "MapUpdated",
+            e => {
+                if (e.businesses == "done") {
+                    let interval = setInterval(() => {
+                        if (this.map.isSourceLoaded("places")) {
+                            this.map.getSource("places").setData(this.mapData);
+
+                            // resource table is updated earlier than map
+                            // Once map is rendered, we need to update the table.
+                            this.updateIndexResources();
+
+                            clearInterval(interval);
+                        }
+                    }, 100);
+                } else {
+                    this.addMapData(e.businesses);
+
+                    this.businessTotal += e.businesses["businessTotal"];
+                    this.reviewTotal += e.businesses["reviewTotal"];
+                    this.imageTotal += e.businesses["postTotal"];
+                }
+            }
+        );
     },
 
     computed: {
@@ -81,6 +102,12 @@ export default {
     },
 
     methods: {
+        requestGeoJson() {
+            Nova.request()
+                .get(this.geoJsonUrl())
+                .then(response => {});
+        },
+
         setCookie(name, value, hours = 1) {
             Cookie.set(name, value, { expires: 1 });
         },
@@ -103,7 +130,7 @@ export default {
             return JSON.parse(this.getCookie("map_position"));
         },
 
-        getGeoJsonUrl() {
+        geoJsonUrl() {
             return `/api/v1/businesses/geo-json?bounds=${this.map
                 .getBounds()
                 .toArray()}&id=${Nova.config.userId}`;
@@ -115,7 +142,7 @@ export default {
             this.map = new mapboxgl.Map({
                 container: "map",
                 style: "mapbox://styles/mapbox/streets-v9",
-                minZoom: 4,
+                minZoom: 5,
                 center: [
                     this.getCenter().center.lng,
                     this.getCenter().center.lat
@@ -131,7 +158,7 @@ export default {
 
             let map = this.map;
             map.addControl(new mapboxgl.NavigationControl());
-            map.on("load", async () => {
+            map.on("load", () => {
                 map.on("click", "clusters", function(e) {
                     var features = map.queryRenderedFeatures(e.point, {
                         layers: ["clusters"]
@@ -207,20 +234,11 @@ export default {
                     }, 500)
                 );
 
-                await Nova.request()
-                    .get(this.getGeoJsonUrl())
-                    .then(response => {
-                        this.mapData = response.data;
-                        this.businessTotal = response.data["businessTotal"];
-                        this.reviewTotal = response.data["reviewTotal"];
-                        this.imageTotal = response.data["postTotal"];
-                        this.lastBusinessId = response.data["lastBusinessId"];
-                        this.size = response.data["size"];
-                    });
-
                 map.addSource("places", {
                     type: "geojson",
-                    data: this.mapData,
+                    data: {
+                        features: [{ geometry: { coordinates: [] } }] // dummy
+                    },
                     cluster: true,
                     clusterMaxZoom: 14,
                     clusterRadius: 50
@@ -280,35 +298,26 @@ export default {
                         "circle-stroke-color": "#fff"
                     }
                 });
-
-                // resource table is updated earlier than map
-                // Once map is rendered, we need to update the table.
-                this.updateIndexResources();
             });
         },
 
-        async updateMap() {
+        updateMap() {
+            this.initializeMapData();
+
+            this.requestGeoJson();
+
             // set search bounds
             this.removeControl().addControl();
-
-            await this.redraw();
-
-            this.updateIndexResources();
         },
 
-        async redraw() {
-            await Nova.request()
-                .get(this.getGeoJsonUrl())
-                .then(response => {
-                    this.mapData = response.data;
-                    this.businessTotal = response.data["businessTotal"];
-                    this.reviewTotal = response.data["reviewTotal"];
-                    this.imageTotal = response.data["postTotal"];
-                    this.lastBusinessId = response.data["lastBusinessId"];
-                    this.size = response.data["size"];
-                });
-
-            this.map.getSource("places").setData(this.mapData);
+        initializeMapData() {
+            this.mapData = {
+                type: "FeatureCollection",
+                features: []
+            };
+            this.businessTotal = 0;
+            this.reviewTotal = 0;
+            this.imageTotal = 0;
         },
 
         addControl() {
@@ -346,61 +355,15 @@ export default {
             // Call the resource updater
             this.index.getResources();
             this.index.getFilters();
-
-            // if search result > this.size
-            // we should get them
-            if (this.businessTotal == this.size) {
-                this.getMapData();
-            }
         },
 
         addMapData(data) {
-            data = typeof data == "undefined" ? [] : data;
-
             this.mapData.features = [
                 ...this.mapData.features,
                 ...data.features
             ];
 
             return this.mapData;
-        },
-
-        async getMapData() {
-            let count = 0;
-            do {
-                await this.fetchData(count);
-                count++;
-            } while (this.searching);
-
-            this.map.getSource("places").setData(this.mapData);
-        },
-
-        async fetchData(count) {
-            await Nova.request()
-                .get(
-                    `/nova-vendor/mapbox/business-draw?bounds=${this.map
-                        .getBounds()
-                        .toArray()}&business_id=${this.lastBusinessId}`
-                )
-                .then(response => {
-                    // show items on map every 5 times
-                    if (count % 5 == 0) {
-                        this.map
-                            .getSource("places")
-                            .setData(this.addMapData(response.data));
-                    } else {
-                        this.addMapData(response.data);
-                    }
-
-                    this.businessTotal += response.data["businessTotal"];
-                    this.reviewTotal += response.data["reviewTotal"];
-                    this.imageTotal += response.data["postTotal"];
-                    this.lastBusinessId = response.data["lastBusinessId"];
-                    this.size = response.data["size"];
-
-                    this.searching =
-                        response.data["businessTotal"] == this.size;
-                });
         },
 
         formatNumber(num) {

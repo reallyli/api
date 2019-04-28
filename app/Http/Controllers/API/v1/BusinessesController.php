@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\Models\Business;
+use App\Events\MapUpdated;
 use Illuminate\Http\Request;
 use App\Models\BusinessReview;
 use Elasticsearch\ClientBuilder;
@@ -13,8 +14,7 @@ use App\Http\Resources\BusinessResource;
 use App\Http\Requests\Api\Businesses\StoreBusiness;
 use App\Http\Requests\Api\Businesses\UpdateBusiness;
 use App\Http\Requests\Api\Businesses\BookmarkBusiness;
-use App\Elastic\Configurators\Business as BusinessConfigurat5or;
-use App\Events\UpdateMap;
+use App\Elastic\Configurators\Business as BusinessConfigurator;
 
 class BusinessesController extends Controller
 {
@@ -36,94 +36,71 @@ class BusinessesController extends Controller
      * @OA\Get(
      *     path="/api/v1/businesses/geo-json",
      *     summary="Get GEO Json for businesses",
-     *     @OA\Response(response="200", description="Geo Data JSON filestream"),
+     *     @OA\Response(response="200", description="Send geo Data JSON via websocket"),
      *  )
      * @return array
      */
-    public function geoJson(Request $request)
+    public function geoJson()
     {
-        $businesses = ClientBuilder::create()
-            ->setHosts(config('scout_elastic.client.hosts'))
-            ->build()
-            ->search($this->getParams());
-        
+        $count = 1;
+        $data['postTotal'] = 0;
+        $userId = request('id');
+        $data['reviewTotal'] = 0;
+        $data['businessTotal'] = 0;
+        $data['lastBusinessId'] = 0;
+        $data['categories'] = collect();
         $data['type'] = 'FeatureCollection';
-        $data['size'] = Business::LIMIT;
-
-        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) use (&$data) {
-            // 3min Lavavel 5.7
-            cache(['businessBuilder'.request('id') => $businesses], 3);
-            cache(['businessIds'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
-            cache(['businessTotal'.request('id') => $businesses->count()], 3);
-            cache(['categories'.request('id') =>  null], 3);
-
-            $data['businessTotal'] = $businesses->count();
-            $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
-            $data['postTotal'] = $businesses->sum('_source.total_posts');
-        })->map(function ($business) use (&$data) {
-            $data['lastBusinessId'] = $business['_id'];
-
-            $business = $business['_source'];
-
-            return [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [$business['location']['lon'], $business['location']['lat']],
-                ],
-                'properties' => [
-                    'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
-                ],
-            ];
-        });
-
-        event(new UpdateMap);
-
-        return response()->json($data);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/nova-vendor/mapbox/business-draw",
-     *     summary="Fetch GEO Json for businesses",
-     *     @OA\Response(response="200", description="Geo Data JSON filestream"),
-     *  )
-     * @return array
-     */
-    public function fetchJson(Request $request)
-    {
-        $businesses = ClientBuilder::create()
-            ->setHosts(config('scout_elastic.client.hosts'))
-            ->build()->search($this->getParams($request->business_id));
-
-        $data['type'] = 'FeatureCollection';
-        $data['size'] = Business::LIMIT;
         
-        $data['features'] = tap(collect($businesses['hits']['hits']), function ($businesses) use (&$data) {
-            cache(['businessBuilder'.request('id') => $businesses], 3);
-            cache(['businessIds'.request('id') => $businesses->pluck('_source.id')->toJson()], 3);
-
-            $data['businessTotal'] = $businesses->count();
-            $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
-            $data['postTotal'] = $businesses->sum('_source.total_posts');
-        })->map(function ($business) use (&$data) {
-            $data['lastBusinessId'] = $business['_id'];
-
-            $business = $business['_source'];
+        do {
+            $businesses = ClientBuilder::create()
+                ->setHosts(config('scout_elastic.client.hosts'))
+                ->build()->search($this->getParams($data['lastBusinessId']));
+    
+            $data['type'] = 'FeatureCollection';
             
-            return [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [$business['location']['lon'], $business['location']['lat']],
-                ],
-                'properties' => [
-                    'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
-                ],
-            ];
-        });
+            $data['features'] = collect($businesses['hits']['hits'])->tap(function ($businesses) use (&$data, &$count, $userId) {
+                if ($count == 1) {
+                    // too many categories & businesses. so we take just first batch of them.
+                    cache(['businessIds'.$userId => $businesses->pluck('_source.id')->toJson()], 3);
+                    cache(['categoryIds'.$userId =>
+                            $businesses->pluck('_source.categoryIds')
+                                ->flatten()
+                                ->unique()
+                                ->values()
+                                ->toJson()
+                        ], 3);
 
-        return response()->json($data);
+                    $count++;
+                }
+    
+                $data['businessTotal'] = $businesses->count();
+                $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
+                $data['postTotal'] = $businesses->sum('_source.total_posts');
+            })->map(function ($business) use (&$data) {
+                $data['lastBusinessId'] = $business['_id'];
+                
+                $business = $business['_source'];
+                
+                return [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [$business['location']['lon'], $business['location']['lat']],
+                    ],
+                    'properties' => [
+                        'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
+                    ],
+                ];
+            });
+    
+            event(new MapUpdated($data, $userId));
+
+            unset($data['features']);
+        } while ($data['businessTotal'] == Business::LIMIT);
+
+        event(new MapUpdated('done', $userId));
+
+        return response('ok');
     }
 
     public function geoJsonByBisinessID($id)
@@ -539,10 +516,9 @@ class BusinessesController extends Controller
         [$left, $bottom, $right, $top] = explode(',', request()->bounds);
 
         return [
-            'index' => (new BusinessConfigurat5or)->getName(),
+            'index' => (new BusinessConfigurator)->getName(),
             'type' => 'businesses',
             'body' => [
-                'from' => 0,
                 'size' => Business::LIMIT,
                 'sort'=> [
                     [

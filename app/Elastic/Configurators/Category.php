@@ -9,6 +9,8 @@ class Category extends IndexConfigurator
 {
     use Migratable;
 
+    // protected $name = 'category_200000';
+
     /**
      * @var array
      */

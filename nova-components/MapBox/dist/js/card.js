@@ -35644,13 +35644,13 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                     if (_this.map.isSourceLoaded("places")) {
                         _this.map.getSource("places").setData(_this.mapData);
 
-                        // // resource table is updated earlier than map
-                        // // Once map is rendered, we need to update the table.
+                        // resource table is updated earlier than map
+                        // Once map is rendered, we need to update the table.
                         _this.updateIndexResources();
 
                         clearInterval(interval);
                     }
-                }, 1000);
+                }, 100);
             } else {
                 _this.addMapData(e.businesses);
 
