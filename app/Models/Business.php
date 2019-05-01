@@ -195,6 +195,16 @@ class Business extends Model
             'cover_photo'     => $this->cover_photo,
             'is_open'           => (bool) $this->is_open,
             'open_description' => $this->open_description,
+            'map_data' => [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [$this->lng, $this->lat]
+                ],
+                'properties' => [
+                    'name' =>"<a href=\"/dashboard/resources/businesses/{$this->id}\">{$this->name}</a>",
+                ]
+            ]
         ];
     }
 

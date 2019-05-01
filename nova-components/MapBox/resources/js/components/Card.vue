@@ -21,8 +21,6 @@
                 </tr>
             </table>
         </div>
-
-        <update-map></update-map>
     </card>
 </template>
 
@@ -45,7 +43,11 @@ export default {
             map: null,
             index: "",
             iControl: 0,
-            mapData: {},
+            mapData: {
+                type: "FeatureCollection",
+                features: []
+            },
+            progress: 0,
             imageTotal: 0,
             reviewTotal: 0,
             businessTotal: 0
@@ -53,8 +55,6 @@ export default {
     },
 
     mounted() {
-        this.initializeMapData();
-
         this.createMap();
 
         this.index = this.getResourceIndex(this.$parent);
@@ -65,6 +65,8 @@ export default {
             "MapUpdated",
             e => {
                 if (e.businesses == "done") {
+                    this.progress = this.businessTotal;
+
                     let interval = setInterval(() => {
                         if (this.map.isSourceLoaded("places")) {
                             this.map.getSource("places").setData(this.mapData);
@@ -75,13 +77,11 @@ export default {
 
                             clearInterval(interval);
                         }
-                    }, 100);
+                    }, 500);
                 } else {
                     this.addMapData(e.businesses);
 
-                    this.businessTotal += e.businesses["businessTotal"];
-                    this.reviewTotal += e.businesses["reviewTotal"];
-                    this.imageTotal += e.businesses["postTotal"];
+                    this.progress = e.businesses.progress;
                 }
             }
         );
@@ -89,7 +89,7 @@ export default {
 
     computed: {
         businessTotalOnMap() {
-            return this.formatNumber(this.businessTotal);
+            return this.formatNumber(this.progress);
         },
 
         reviewTotalOnMap() {
@@ -105,7 +105,11 @@ export default {
         requestGeoJson() {
             Nova.request()
                 .get(this.geoJsonUrl())
-                .then(response => {});
+                .then(response => {
+                    this.businessTotal = response.data.businessTotal;
+                    this.reviewTotal = response.data.reviewTotal;
+                    this.imageTotal = response.data.imageTotal;
+                });
         },
 
         setCookie(name, value, hours = 1) {
@@ -142,7 +146,7 @@ export default {
             this.map = new mapboxgl.Map({
                 container: "map",
                 style: "mapbox://styles/mapbox/streets-v9",
-                minZoom: 5,
+                minZoom: 4,
                 center: [
                     this.getCenter().center.lng,
                     this.getCenter().center.lat
@@ -315,9 +319,10 @@ export default {
                 type: "FeatureCollection",
                 features: []
             };
-            this.businessTotal = 0;
-            this.reviewTotal = 0;
+            this.progress = 0;
             this.imageTotal = 0;
+            this.reviewTotal = 0;
+            this.businessTotal = 0;
         },
 
         addControl() {
@@ -357,10 +362,10 @@ export default {
             this.index.getFilters();
         },
 
-        addMapData(data) {
+        addMapData(businesses) {
             this.mapData.features = [
                 ...this.mapData.features,
-                ...data.features
+                ...businesses.features
             ];
 
             return this.mapData;

@@ -42,65 +42,52 @@ class BusinessesController extends Controller
      */
     public function geoJson()
     {
-        $count = 1;
-        $data['postTotal'] = 0;
+        $businessIds = [];
+        $categoryIds = [];
+        $lastBusinessId = 0;
+        $data['progress'] = 0;
         $userId = request('id');
-        $data['reviewTotal'] = 0;
-        $data['businessTotal'] = 0;
-        $data['lastBusinessId'] = 0;
-        $data['categories'] = collect();
-        $data['type'] = 'FeatureCollection';
+        
+        $builder = $this->createBuilder();
+        
+        [$left, $bottom, $right, $top] = explode(',', request()->bounds);
+        
+        $total = $this->getTotals(
+            $builder->search($this->getParamsForTotals($left, $bottom, $right, $top))
+        );
         
         do {
-            $businesses = ClientBuilder::create()
-                ->setHosts(config('scout_elastic.client.hosts'))
-                ->build()->search($this->getParams($data['lastBusinessId']));
-    
-            $data['type'] = 'FeatureCollection';
-            
-            $data['features'] = collect($businesses['hits']['hits'])->tap(function ($businesses) use (&$data, &$count, $userId) {
-                if ($count == 1) {
-                    // too many categories & businesses. so we take just first batch of them.
-                    cache(['businessIds'.$userId => $businesses->pluck('_source.id')->toJson()], 3);
-                    cache(['categoryIds'.$userId =>
-                            $businesses->pluck('_source.categoryIds')
-                                ->flatten()
-                                ->unique()
-                                ->values()
-                                ->toJson()
-                        ], 3);
+            $data['progress'] += Business::LIMIT;
 
-                    $count++;
+            $businesses = $builder->search($this->getParamsForBusinesses($lastBusinessId, $left, $bottom, $right, $top));
+
+            // Pick up the last business id so that we can start after that in the next search.
+            if (isset($businesses['hits']['hits'][Business::LIMIT - 1])) {
+                $lastBusinessId = $businesses['hits']['hits'][Business::LIMIT - 1]['_id'];
+            }
+
+            $data['features'] = collect($businesses['hits']['hits'])->map(function ($business) use (&$businessIds, &$categoryIds) {
+
+                // If there are too many businessIds or categoryIds, pass!
+                if (count($businessIds) < 100 && count($categoryIds) < 100) {
+                    $businessIds[] = $business['_source']['id'];
+                    $categoryIds = array_unique(array_merge($categoryIds, $business['_source']['categoryIds']));
                 }
-    
-                $data['businessTotal'] = $businesses->count();
-                $data['reviewTotal'] = $businesses->sum('_source.total_reviews');
-                $data['postTotal'] = $businesses->sum('_source.total_posts');
-            })->map(function ($business) use (&$data) {
-                $data['lastBusinessId'] = $business['_id'];
-                
-                $business = $business['_source'];
-                
-                return [
-                    'type' => 'Feature',
-                    'geometry' => [
-                        'type' => 'Point',
-                        'coordinates' => [$business['location']['lon'], $business['location']['lat']],
-                    ],
-                    'properties' => [
-                        'name' => "<a href=\"/dashboard/resources/businesses/{$business['id']}\">{$business['name']}</a>",
-                    ],
-                ];
+
+                return $business['_source']['map_data'];
             });
-    
+
             event(new MapUpdated($data, $userId));
 
             unset($data['features']);
-        } while ($data['businessTotal'] == Business::LIMIT);
+        } while ($data['progress'] < $total['businessTotal']);
 
         event(new MapUpdated('done', $userId));
 
-        return response('ok');
+        cache(['businessIds'.$userId => json_encode($businessIds)], 3);
+        cache(['categoryIds'.$userId =>json_encode($categoryIds)], 3);
+
+        return response()->json($total);
     }
 
     public function geoJsonByBisinessID($id)
@@ -511,14 +498,13 @@ class BusinessesController extends Controller
             ], 200);
     }
 
-    public function getParams($id = 0)
+    public function getParamsForBusinesses($id = 0, $left, $bottom, $right, $top)
     {
-        [$left, $bottom, $right, $top] = explode(',', request()->bounds);
-
         return [
             'index' => (new BusinessConfigurator)->getName(),
             'type' => 'businesses',
             'body' => [
+                '_source' => ["map_data", "id", "categoryIds"],
                 'size' => Business::LIMIT,
                 'sort'=> [
                     [
@@ -553,6 +539,63 @@ class BusinessesController extends Controller
                     ]
                 ]
             ],
+        ];
+    }
+
+    public function getParamsForTotals($left, $bottom, $right, $top)
+    {
+        return [
+            'index' => (new BusinessConfigurator)->getName(),
+            'type' => 'businesses',
+            'body' => [
+                'size' => 0,
+                'query' => [
+                    'constant_score' => [
+                        'filter' => [
+                            'geo_bounding_box' => [
+                                'location' => [
+                                    'top_left' => [
+                                        'lat' => (float)$top,
+                                        'lon' => (float)$left,
+                                    ],
+                                    "bottom_right" => [
+                                        'lat' => (float)$bottom,
+                                        'lon' => (float)$right,
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'aggs' => [
+                    'total_posts' => [
+                        'sum' => [
+                            'field' => 'total_posts'
+                        ]
+                    ],
+                    'total_reviews' => [
+                        'sum' => [
+                            'field' => 'total_reviews'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    public function createBuilder()
+    {
+        return ClientBuilder::create()
+                ->setHosts(config('scout_elastic.client.hosts'))
+                ->build();
+    }
+
+    public function getTotals($totals)
+    {
+        return [
+            'businessTotal' => $totals['hits']['total'],
+            'reviewTotal' => $totals['aggregations']['total_reviews']['value'],
+            'imageTotal' => $totals['aggregations']['total_posts']['value'],
         ];
     }
 }

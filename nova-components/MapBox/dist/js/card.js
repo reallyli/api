@@ -35601,8 +35601,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 //
 //
 //
-//
-//
 
 
 
@@ -35621,7 +35619,11 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             map: null,
             index: "",
             iControl: 0,
-            mapData: {},
+            mapData: {
+                type: "FeatureCollection",
+                features: []
+            },
+            progress: 0,
             imageTotal: 0,
             reviewTotal: 0,
             businessTotal: 0
@@ -35629,8 +35631,6 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
     },
     mounted: function mounted() {
         var _this = this;
-
-        this.initializeMapData();
 
         this.createMap();
 
@@ -35640,6 +35640,8 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
         Echo.channel("map-data." + Nova.config.userId).listen("MapUpdated", function (e) {
             if (e.businesses == "done") {
+                _this.progress = _this.businessTotal;
+
                 var interval = setInterval(function () {
                     if (_this.map.isSourceLoaded("places")) {
                         _this.map.getSource("places").setData(_this.mapData);
@@ -35650,13 +35652,11 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
                         clearInterval(interval);
                     }
-                }, 100);
+                }, 500);
             } else {
                 _this.addMapData(e.businesses);
 
-                _this.businessTotal += e.businesses["businessTotal"];
-                _this.reviewTotal += e.businesses["reviewTotal"];
-                _this.imageTotal += e.businesses["postTotal"];
+                _this.progress = e.businesses.progress;
             }
         });
     },
@@ -35664,7 +35664,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
     computed: {
         businessTotalOnMap: function businessTotalOnMap() {
-            return this.formatNumber(this.businessTotal);
+            return this.formatNumber(this.progress);
         },
         reviewTotalOnMap: function reviewTotalOnMap() {
             return this.formatNumber(this.reviewTotal);
@@ -35676,7 +35676,13 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
 
     methods: {
         requestGeoJson: function requestGeoJson() {
-            Nova.request().get(this.geoJsonUrl()).then(function (response) {});
+            var _this2 = this;
+
+            Nova.request().get(this.geoJsonUrl()).then(function (response) {
+                _this2.businessTotal = response.data.businessTotal;
+                _this2.reviewTotal = response.data.reviewTotal;
+                _this2.imageTotal = response.data.imageTotal;
+            });
         },
         setCookie: function setCookie(name, value) {
             var hours = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
@@ -35708,7 +35714,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             this.map = new __WEBPACK_IMPORTED_MODULE_0_mapbox_gl___default.a.Map({
                 container: "map",
                 style: "mapbox://styles/mapbox/streets-v9",
-                minZoom: 5,
+                minZoom: 4,
                 center: [this.getCenter().center.lng, this.getCenter().center.lat],
                 zoom: this.getCenter().zoom
             });
@@ -35716,7 +35722,7 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             this.addClusters();
         },
         addClusters: function addClusters() {
-            var _this2 = this;
+            var _this3 = this;
 
             this.addControl();
 
@@ -35762,21 +35768,21 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                 });
 
                 map.on("zoomend", _.debounce(function () {
-                    _this2.setCookie("map_position", JSON.stringify({
+                    _this3.setCookie("map_position", JSON.stringify({
                         zoom: map.getZoom(),
                         center: map.getCenter()
                     }));
 
-                    _this2.updateMap();
+                    _this3.updateMap();
                 }, 500));
 
                 map.on("dragend", _.debounce(function () {
-                    _this2.setCookie("map_position", JSON.stringify({
+                    _this3.setCookie("map_position", JSON.stringify({
                         zoom: map.getZoom(),
                         center: map.getCenter()
                     }));
 
-                    _this2.updateMap();
+                    _this3.updateMap();
                 }, 500));
 
                 map.addSource("places", {
@@ -35839,9 +35845,10 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
                 type: "FeatureCollection",
                 features: []
             };
-            this.businessTotal = 0;
-            this.reviewTotal = 0;
+            this.progress = 0;
             this.imageTotal = 0;
+            this.reviewTotal = 0;
+            this.businessTotal = 0;
         },
         addControl: function addControl() {
             this.map.addControl(this.iControl = new __WEBPACK_IMPORTED_MODULE_1__mapbox_mapbox_gl_geocoder___default.a({
@@ -35872,8 +35879,8 @@ var API_KEY = "pk.eyJ1IjoiYXNzZCIsImEiOiJjam4waHV1M2kwYXRpM3VwYzYyaTV6em5wIn0.Ju
             this.index.getResources();
             this.index.getFilters();
         },
-        addMapData: function addMapData(data) {
-            this.mapData.features = [].concat(_toConsumableArray(this.mapData.features), _toConsumableArray(data.features));
+        addMapData: function addMapData(businesses) {
+            this.mapData.features = [].concat(_toConsumableArray(this.mapData.features), _toConsumableArray(businesses.features));
 
             return this.mapData;
         },
@@ -43786,11 +43793,8 @@ var render = function() {
             ])
           ])
         ])
-      ]),
-      _vm._v(" "),
-      _c("update-map")
-    ],
-    1
+      ])
+    ]
   )
 }
 var staticRenderFns = []

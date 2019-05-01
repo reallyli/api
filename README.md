@@ -150,6 +150,16 @@ Add your Twilio Account SID, Auth Token, and From Number (optional) to your conf
     'from' => env('TWILIO_NUMBER'), // optional
 ],
 ...
+
+// .env
+# Twilio API credentials
+# Found at https://www.twilio.com/user/account/settings
+TWILIO_ACCOUNT_SID=ACba363c5622d470d9a6637d734cdb8da2
+TWILIO_AUTH_TOKEN=794080dc17a42b18cd81fab05d3187c3
+
+# Twilio phone number
+# Purchase one at https://www.twilio.com/user/account/phone-numbers
+TWILIO_NUMBER=+13333333333(your-twilio-number)
 ```
 
 # WebSocket
@@ -159,6 +169,42 @@ You need to start websockets to send map data to the client side.
 php artisan websockets:serve
 ```
 
+Set the broadcast driver to pusher and add pusher credentials.
+
+```
+// .env
+BROADCAST_DRIVER=pusher
+
+PUSHER_APP_ID=api_id
+PUSHER_APP_KEY=api_key
+PUSHER_APP_SECRET=api_secret
+PUSHER_APP_CLUSTER=mt1
+```
+
+# Redis
+
+We use the redis as a queue driver. Before using Redis with Laravel, you will need to install the predis/predis package. Refer to [Laravel](https://laravel.com/docs/5.8/redis).
+
+```
+composer require predis/predis
+```
+
+Set the queue driver to redis and add redis credentials.
+
+```
+// .env
+QUEUE_CONNECTION=redis
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+```
+
+# Running the Queue Worker
+You need to run a queue worker to queue before sending map data to the client side.
+```
+php artisan queue:work
+```
 
 # Mac Set-up
 
